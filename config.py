@@ -1,5 +1,10 @@
 #! /usr/bin/env python3
 
+## This is phase 1 of the A-maze-ing project, in this branch I am trying to configure, parse and validate the input file which is considered the starting point to the whole project, as simple as it may sound, I discovered we need to handle **CRAZY** edgecases !!
+## so I'd say this file is a _HUGE minefield cleanser_.
+
+
+
 ## here all I want to do is to read a file
 ## parse its **input** --> checking for errors
 ## split each line from the '='

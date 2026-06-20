@@ -42,3 +42,9 @@ also there is smth called perfectmode here? not sure yet.
 8- create the .whl file to create an installable library.
 
 9- cleanup, readme, flake8 mypy etc../ finally pushing.
+
+# Sources
+
+- https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
+- https://www.w3schools.com/python/python_operators_bitwise.asp
+- https://www.geeksforgeeks.org/python/python-using-2d-arrays-lists-the-right-way/

@@ -15,15 +15,35 @@ class Cell:
     def __init__(self):
         # setting all walls to closed using bit operations -> (1111)
         self.walls: Walls = Walls.NORTH | Walls.EAST | Walls.SOUTH | Walls.WEST
+        self.visited = False
 
 
 class Grid:
     def __init__(self, width: int, height: int):
         self.width = width
         self.height = height
-        self.cells = [[Cell() for _ in range(self.width)] for _ in range(self.height)]
+        self.cells = [[Cell() for _ in range(self.width)] for _ in range(self.height)]  # creating 2D Array/List for Grid each element is a Cell() Object which Walls are closed
 
 
+def get_unvisited_neighbours(grid: Grid, cur_x: int, cur_y: int):
+    # defining each neighbor as the direction they're in
+    north: Cell = grid.cells[cur_y + 1][cur_x]
+    east: Cell = grid.cells[cur_y][cur_x + 1]
+    south: Cell = grid.cells[cur_y - 1][cur_x]
+    west: Cell = grid.cells[cur_y][cur_x - 1]
+
+    # creating a list for all the unvisited neighbours
+    unvisited_neighbours: list[Cell] = []
+    if not north.visited:
+        unvisited_neighbours.append(north)
+    if not east.visited:
+        unvisited_neighbours.append(east)
+    if not south.visited:
+        unvisited_neighbours.append(south)
+    if not west.visited:
+        unvisited_neighbours.append(west)
+
+    return unvisited_neighbours
 
 
 # ================= TESTING =================

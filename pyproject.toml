@@ -1,20 +1,31 @@
+# ===== BUILD SYSTEM =====
+# Tells pip/build WHICH tool to use to build this package, and how to call it.
+# Without this section, pip wouldn't know how to turn your source code into a wheel/sdist.
 [build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+requires = ["setuptools>=61.0"]          # The tool needed to build: setuptools, version 61+ (first version that reads [project] from pyproject.toml directly)
+build-backend = "setuptools.build_meta"  # The exact entry point function setuptools exposes for builders to call
 
+# ===== PROJECT METADATA =====
+# Standardized package info (PEP 621) — same fields work across ANY build backend (setuptools, hatchling, poetry, etc.)
 [project]
-name = "mazegen"
-version = "0.1.0"
-description = "Reusable maze generation library"
-requires-python = ">=3.10"
+name = "mazegen"                         # Distribution name -> generates files like mazegen-0.1.0-py3-none-any.whl
+version = "0.1.0"                        # Package version, follows semantic versioning (major.minor.patch)
+description = "Reusable maze generation library"  # One-line summary shown on PyPI / pip show
+requires-python = ">=3.10"               # Minimum Python version required to install/run this package
+
 authors = [
-    {name = "Casie Lynn Garnatz", email = "casgarna@student.42berlin.de "},
+    {name = "Casie Lynn Garnatz", email = "casgarna@student.42berlin.de"},
     {name = "Karim Taher", email = "ktaher@student.42berlin.de"},
 ]
-readme = "README.md"
 
+readme = "README.md"                     # File used as the "long description" shown on PyPI
+
+# Extra links shown on the package's PyPI page (optional)
 [project.urls]
 Repository = "https://github.com/kariminem/A-maze-ing.git"
 
+# ===== SETUPTOOLS-SPECIFIC CONFIG =====
+# Not part of any standard — this is setuptools' own config namespace under [tool.*]
+# Tells setuptools WHERE to look for your actual package code
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["src"]                          # Search inside src/ instead of repo root (because we use src-layout)

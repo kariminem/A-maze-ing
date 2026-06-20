@@ -25,25 +25,48 @@ class Grid:
         self.cells = [[Cell() for _ in range(self.width)] for _ in range(self.height)]  # creating 2D Array/List for Grid each element is a Cell() Object which Walls are closed
 
 
-def get_unvisited_neighbours(grid: Grid, cur_x: int, cur_y: int):
+def get_unvisited_neighbors(grid: Grid, cur_x: int, cur_y: int):
     # defining each neighbor as the direction they're in
     north: Cell = grid.cells[cur_y + 1][cur_x]
     east: Cell = grid.cells[cur_y][cur_x + 1]
     south: Cell = grid.cells[cur_y - 1][cur_x]
     west: Cell = grid.cells[cur_y][cur_x - 1]
 
-    # creating a list for all the unvisited neighbours
-    unvisited_neighbours: list[Cell] = []
+    # creating a list for all the unvisited neighbors
+    unvisited_neighbors: list[Cell] = []
     if not north.visited:
-        unvisited_neighbours.append(north)
+        unvisited_neighbors.append(north)
     if not east.visited:
-        unvisited_neighbours.append(east)
+        unvisited_neighbors.append(east)
     if not south.visited:
-        unvisited_neighbours.append(south)
+        unvisited_neighbors.append(south)
     if not west.visited:
-        unvisited_neighbours.append(west)
+        unvisited_neighbors.append(west)
 
-    return unvisited_neighbours
+    return unvisited_neighbors
+
+
+def remove_wall_between(current: Cell, neighbor: Cell, direction: Walls):
+    # get the direction if the neighbors wall
+    if direction == Walls.NORTH:
+        opposite = Walls.SOUTH
+    elif direction == Walls.EAST:
+        opposite = Walls.WEST
+    elif direction == Walls.SOUTH:
+        opposite = Walls.NORTH
+    elif direction == Walls.WEST:
+        opposite = Walls.EAST
+    else:
+        raise ValueError(f"{direction} is Invalid. Valid options: NORTH, EAST, SOUTH, WEST")
+
+    # we do a bit operation by inverting the bits of the direction (with ~)
+    # and using the & which will only set bits to 1 if both bits (current
+    # wall and direction) are 1. Since we inverted direction bits, the only 1
+    # bit of that direction, will be zero and only this bit will be deducted
+    # So it is simply the way of setting that wall to "open"
+    current.walls &= ~direction
+    neighbor.walls &= ~opposite
+
 
 
 # ================= TESTING =================

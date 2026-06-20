@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mazegen"
+version = "0.1.0"
+description = "Reusable maze generation library"
+requires-python = ">=3.10"
+authors = [
+    {name = "Casie Lynn Garnatz", email = "casgarna@student.42berlin.de "},
+    {name = "Karim Taher", email = "ktaher@student.42berlin.de"},
+]
+readme = "README.md"
+
+[project.urls]
+Repository = "https://github.com/kariminem/A-maze-ing.git"
+
+[tool.setuptools.packages.find]
+where = ["src"]

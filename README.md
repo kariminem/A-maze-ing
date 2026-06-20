@@ -42,3 +42,7 @@ also there is smth called perfectmode here? not sure yet.
 8- create the .whl file to create an installable library.
 
 9- cleanup, readme, flake8 mypy etc../ finally pushing.
+
+# Sources
+
+- https://packaging.python.org/en/latest/guides/writing-pyproject-toml/

@@ -13,6 +13,9 @@ class Walls(IntFlag):
 
 class Cell:
     def __init__(self, x: int, y: int):
+        # cells have to have their coordinates to know where they are in the
+        # grid so its easier to work with cells instead of having to
+        # communicate coordinates
         self.x = x
         self.y = y
         # setting all walls to closed using bit operations -> (1111)
@@ -24,7 +27,8 @@ class Grid:
     def __init__(self, width: int, height: int):
         self.width = width
         self.height = height
-        self.cells: list[list[Cell]] = []
+        self.cells: list[list[Cell]] = []  # create empty double array
+        # have to loop through it to set the x and y coordinates
         for y in range(height):
             row: list[Cell] = []
             for x in range(width):
@@ -51,7 +55,9 @@ def get_unvisited_neighbors(grid: Grid, current: Cell):
 
     # creating a list for all the unvisited neighbors
     unvisited_neighbors: list[Cell] = []
-    if north and not north.visited:
+    if north and not north.visited:  # the if <destination> part i have to also add that for every direction
+        # but i need to use get_neigbour for out of bound first
+        # then we either get a cell back or "Non" wich will then catch if north f.ex. is false
         unvisited_neighbors.append(north)
     if not east.visited:
         unvisited_neighbors.append(east)

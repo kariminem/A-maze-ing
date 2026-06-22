@@ -48,3 +48,4 @@ also there is smth called perfectmode here? not sure yet.
 - https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
 - https://www.w3schools.com/python/python_operators_bitwise.asp
 - https://www.geeksforgeeks.org/python/python-using-2d-arrays-lists-the-right-way/
+- https://www.w3schools.com/python/module_random.asp

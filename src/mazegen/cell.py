@@ -12,7 +12,9 @@ class Walls(IntFlag):
 
 
 class Cell:
-    def __init__(self):
+    def __init__(self, x: int, y: int):
+        self.x = x
+        self.y = y
         # setting all walls to closed using bit operations -> (1111)
         self.walls: Walls = Walls.NORTH | Walls.EAST | Walls.SOUTH | Walls.WEST
         self.visited = False
@@ -22,19 +24,34 @@ class Grid:
     def __init__(self, width: int, height: int):
         self.width = width
         self.height = height
-        self.cells = [[Cell() for _ in range(self.width)] for _ in range(self.height)]  # creating 2D Array/List for Grid each element is a Cell() Object which Walls are closed
+        self.cells: list[list[Cell]] = []
+        for y in range(height):
+            row: list[Cell] = []
+            for x in range(width):
+                row.append(Cell(x, y))
+            self.cells.append(row)
+        # self.cells = [[Cell() for _ in range(self.width)] for _ in range(self.height)]  # creating 2D Array/List for Grid each element is a Cell() Object which Walls are closed
 
 
-def get_unvisited_neighbors(grid: Grid, cur_x: int, cur_y: int):
+## NEW HELPER FOR CHECKING IF COORDINATES ARE OUT OUF BOUNDS 
+# STILL HAVE TO CALL IT IN def get_unvisited_neighbors !!!!!!!!!!!!!
+def get_neighbors(grid: Grid, x: int, y: int):
+    if x < 0 or x >= grid.width or y < 0 or y >= grid.height:
+        return None
+    else:
+        return grid.cells[y][x]
+
+
+def get_unvisited_neighbors(grid: Grid, current: Cell):
     # defining each neighbor as the direction they're in
-    north: Cell = grid.cells[cur_y + 1][cur_x]
-    east: Cell = grid.cells[cur_y][cur_x + 1]
-    south: Cell = grid.cells[cur_y - 1][cur_x]
-    west: Cell = grid.cells[cur_y][cur_x - 1]
+    north: Cell = grid.cells[current.y - 1][current.x]
+    east: Cell = grid.cells[current.y][current.x + 1]
+    south: Cell = grid.cells[current.y + 1][current.x]
+    west: Cell = grid.cells[current.y][current.x - 1]
 
     # creating a list for all the unvisited neighbors
     unvisited_neighbors: list[Cell] = []
-    if not north.visited:
+    if north and not north.visited:
         unvisited_neighbors.append(north)
     if not east.visited:
         unvisited_neighbors.append(east)
@@ -67,6 +84,14 @@ def remove_wall_between(current: Cell, neighbor: Cell, direction: Walls):
     current.walls &= ~direction
     neighbor.walls &= ~opposite
 
+# ======== NEXT UP ========
+
+# - list for tracking the path
+# - backtracking algo:
+#   - get_unvisited_neighbours()
+# 	- try: randomly choose one with random.choice(unvisited_neigbours) and call backtracking function recursively with next cell
+#   - except NoUnvisitedNeighbour/EmptyList or whatever: go back one step using the path list and call backtracking function recursively with this cell
+#   - 
 
 
 # ================= TESTING =================

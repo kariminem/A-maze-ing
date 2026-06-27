@@ -19,6 +19,7 @@ OPPOSITE = {
     Walls.WEST: Walls.EAST,
 }
 
+
 class Cell:
     def __init__(self, x: int, y: int):
         # cells have to have their coordinates to know where they are in the

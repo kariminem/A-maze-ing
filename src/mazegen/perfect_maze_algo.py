@@ -1,19 +1,15 @@
 #!/usr/bin/env python3
 
 import random
-from structure import Grid, Cell, Walls, OPPOSITE
-import config
+from .structure import Grid, Cell, Walls, OPPOSITE
+from config import AmazingExceptions
+
 
 class InvalidCoordinates(AmazingExceptions):
     """Exception raised when there is a coordinates missmatch"""
     pass
 
 # ======== NEXT UP ========
-
-# - list for tracking the path
-path: list[Cell] = []
-
-
 # - backtracking algo:
 #   - get_unvisited_neighbours()
 # 	- try: randomly choose one with random.choice(unvisited_neigbours) and call backtracking function recursively with next cell
@@ -28,15 +24,18 @@ path: list[Cell] = []
 # call it with the cell where we begin so: x, y = entry and call
 # perfect_algo(grid, grid.cells[y][x])
 def perfect_algo(grid: Grid, cell: Cell) -> None:
-    path.append(cell)  # append current cell to path, since we hereby stepped into it
+    cell.visited = True
+
     unvisited_neighbors = get_unvisited_neighbors(grid, cell)
-    if unvisited_neighbors:  # if we have an unvisited neighbor
+
+    while unvisited_neighbors:  # if we have an unvisited neighbor
         next_cell = random.choice(unvisited_neighbors)  # choose one randomly
         remove_wall_between(cell, next_cell)  # remove the wall between them
         perfect_algo(grid, next_cell)
-    else:
-        path.pop()
-        perfect_algo(grid, path[-1])
+
+        unvisited_neighbors = get_unvisited_neighbors(grid, cell)
+
+    return
 
 
 def get_neighbor(grid: Grid, x: int, y: int) -> Cell | None:
@@ -76,20 +75,23 @@ def remove_wall_between(current: Cell, neighbor: Cell):
     """remove the wall (set it to 0) of a cell and its neighbor"""
     # get the directions of both cells walls to remove
     if current.y == neighbor.y:
-        if current.x == current.x + 1:
+        if neighbor.x == current.x + 1:
             # neighbor is to our right
             direction_neighbor_wall = Walls.WEST
-        elif current.x == current.x - 1:
+        elif neighbor.x == current.x - 1:
             # neighbor is to our left
             direction_neighbor_wall = Walls.EAST
         else:
             # y == y and x == x ???? -> our neighbor is us
+            print(f"current is: x: {current.x} y: {current.y}\nneighbor is x: {neighbor.x} y: {neighbor.y}") ### for testing ###
+            print(f"neighbor.x == current.x + 1 is: {neighbor.x == current.x + 1}")
+            print(f"neighbor.x == current.x - 1 is: {neighbor.x == current.x - 1}")
             raise InvalidCoordinates
     else:
-        if current.y == current.y - 1:
+        if neighbor.y == current.y - 1:
             # neighbor is above us
             direction_neighbor_wall = Walls.SOUTH
-        elif current.y == current.y + 1:
+        elif neighbor.y == current.y + 1:
             # neighbor is below us
             direction_neighbor_wall = Walls.NORTH
         else:

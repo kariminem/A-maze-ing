@@ -117,51 +117,52 @@ def dict_validate(config_dict: dict) -> dict:
     return final_dict
 
 
-config_dict = {}
-config_file = "default_config.txt"
-try:
-    with open(config_file, "r") as f:
-        text_list_unedited = [i.strip() for i in f if i.strip() != "" and i.strip()[0] != '#' ]
-        for line in text_list_unedited:
-            key, value = line.split("=", 1)
-            config_dict[key.strip()] = value.strip()
-except FileNotFoundError:
-    print("File Not Found!.")
-    exit()
+if __name__ == "__main__":
+    config_dict = {}
+    config_file = "default_config.txt"
+    try:
+        with open(config_file, "r") as f:
+            text_list_unedited = [i.strip() for i in f if i.strip() != "" and i.strip()[0] != '#' ]
+            for line in text_list_unedited:
+                key, value = line.split("=", 1)
+                config_dict[key.strip()] = value.strip()
+    except FileNotFoundError:
+        print("File Not Found!.")
+        exit()
 
 
 
 
 
 
-try:
-    final_dict:dict = dict_validate(config_dict)
-except ValueError:
-    print("Input values should only contain int values")
-    exit()
-except (InvalidWidthInput):
-    print("Invalid Width Input")
-    exit()
-except (InvalidHeightInput):
-    print("Invalid Height Input")
-    exit()
-except (MissingConfigInputs):
-    print("Missing Config Parameters")
-    exit()
-except (InvalidExitInput):
-    print("Invalid Exit Input in config file")
-    exit()
-except (InvalidEntryInput):
-    print("Invalid Entry Input in config file")
-    exit()
-except (EmptyFileName):
-    print("Empty Output File Name")
-    exit()
-except (InvalidPerfectPathInput):
-    print("Invalid perfect path specifier, set to True or False")
-    exit()
-except (ExceedingMazeLimit):
-    print("Exceeding Maze Limit")
-    exit()
-print("valdiation finished...")
-print(final_dict)
+    try:
+        final_dict:dict = dict_validate(config_dict)
+    except ValueError:
+        print("Input values should only contain int values")
+        exit()
+    except (InvalidWidthInput):
+        print("Invalid Width Input")
+        exit()
+    except (InvalidHeightInput):
+        print("Invalid Height Input")
+        exit()
+    except (MissingConfigInputs):
+        print("Missing Config Parameters")
+        exit()
+    except (InvalidExitInput):
+        print("Invalid Exit Input in config file")
+        exit()
+    except (InvalidEntryInput):
+        print("Invalid Entry Input in config file")
+        exit()
+    except (EmptyFileName):
+        print("Empty Output File Name")
+        exit()
+    except (InvalidPerfectPathInput):
+        print("Invalid perfect path specifier, set to True or False")
+        exit()
+    except (ExceedingMazeLimit):
+        print("Exceeding Maze Limit")
+        exit()
+    print("valdiation finished...")
+    print(final_dict)

@@ -7,7 +7,7 @@ from src.mazegen.perfect_maze_algo import perfect_algo
 # TESTING OUTPUT ###
 # run ./a_maze_ing.py and then look in output_maze.txt or cat that file
 if __name__ == "__main__":
-    grid = Grid(20, 20)
+    grid = Grid(3, 3)
     start_x = 0
     start_y = 0
 

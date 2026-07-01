@@ -9,16 +9,13 @@ class InvalidCoordinates(AmazingExceptions):
     """Exception raised when there is a coordinates missmatch"""
     pass
 
-# ======== NEXT UP ========
-# - backtracking algo:
-#   - get_unvisited_neighbours()
-# 	- try: randomly choose one with random.choice(unvisited_neigbours) and call backtracking function recursively with next cell
-#   - except NoUnvisitedNeighbour/EmptyList or whatever: go back one step using the path list and call backtracking function recursively with this cell
-##### unsure about the order of the perfect_algo: 
-# should it not start with logging cell into path list
-# then braking wall down
-# then looking for neighbors and callinf funktion on that one? 
-#### i would have to check for the edgecase that we just started with 0,0
+
+# Defining seed to make maze reproducable
+myseed = 42
+# the "rndm" is now our own random-instance, based on the seed,
+# to reproduce mazes, so instead of random.choice() we have
+# to use random_instance.choice()
+random_instance = random.Random(myseed)
 
 
 # call it with the cell where we begin so: x, y = entry and call
@@ -29,7 +26,7 @@ def perfect_algo(grid: Grid, cell: Cell) -> None:
     unvisited_neighbors = get_unvisited_neighbors(grid, cell)
 
     while unvisited_neighbors:  # if we have an unvisited neighbor
-        next_cell = random.choice(unvisited_neighbors)  # choose one randomly
+        next_cell = random_instance.choice(unvisited_neighbors)  # choose one randomly
         remove_wall_between(cell, next_cell)  # remove the wall between them
         perfect_algo(grid, next_cell)
 

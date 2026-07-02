@@ -64,6 +64,14 @@ def forty_two_pattern(grid: Grid):
     vertical_middle = int(grid.height / 2)
     middle_cell: Cell = grid.cells[vertical_middle][horizontal_middle]
 
+    # display error message if grid is too small to put 42 pattern
+    # decided for 8 here because if its 8 then there are isolated
+    # cells in the lower part of 2 to the right border
+    # and under 8 it wouldnt even fit 
+    if grid.width <= 8 or grid.height <= 6:
+        print("42 Pattern Error: grid is too small to display 42 patter. Proceeding without")
+        return
+    
     # so now the blocking the pattern part
 
     # doing the 4 first

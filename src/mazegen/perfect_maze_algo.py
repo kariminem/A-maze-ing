@@ -25,6 +25,10 @@ class InvalidCoordinates(MazeAlgoError):
 
 ########### WHERE is the seed supposed to BEEEEEE ????? I think here is wrong
 # Defining seed to make maze reproducable
+# this is just a draft! Seed is not allowed to be hardcoded
+# but should be either inputted with config file
+# or if not we will not use seed and just use
+# random -> not recreatable ???
 myseed = 42
 # the "rndm" is now our own random-instance, based on the seed,
 # to reproduce mazes, so instead of random.choice() we have

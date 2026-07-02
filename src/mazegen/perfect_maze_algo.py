@@ -2,10 +2,14 @@
 
 import random
 from .structure import Grid, Cell, Walls, OPPOSITE
-from config import AmazingExceptions
 
 
-class InvalidCoordinates(AmazingExceptions):
+class MazeAlgoError(Exception):
+    """Base class for errors raised by the maze generation algorithm."""
+    pass
+
+
+class InvalidCoordinates(MazeAlgoError):
     """Exception raised when there is a coordinates missmatch"""
     pass
 
@@ -26,7 +30,8 @@ def perfect_algo(grid: Grid, cell: Cell) -> None:
     unvisited_neighbors = get_unvisited_neighbors(grid, cell)
 
     while unvisited_neighbors:  # if we have an unvisited neighbor
-        next_cell = random_instance.choice(unvisited_neighbors)  # choose one randomly
+        # choose one randomly
+        next_cell = random_instance.choice(unvisited_neighbors)
         remove_wall_between(cell, next_cell)  # remove the wall between them
         perfect_algo(grid, next_cell)
 
@@ -67,7 +72,7 @@ def get_unvisited_neighbors(grid: Grid, current: Cell):
     return unvisited_neighbors
 
 
-############ FUNCTION SHOULD FIGURE ITSELF OUT WHICH WALLS TO BREAK ############
+# FUNCTION SHOULD FIGURE ITSELF OUT WHICH WALLS TO BREAK
 def remove_wall_between(current: Cell, neighbor: Cell):
     """remove the wall (set it to 0) of a cell and its neighbor"""
     # get the directions of both cells walls to remove
@@ -80,9 +85,19 @@ def remove_wall_between(current: Cell, neighbor: Cell):
             direction_neighbor_wall = Walls.EAST
         else:
             # y == y and x == x ???? -> our neighbor is us
-            print(f"current is: x: {current.x} y: {current.y}\nneighbor is x: {neighbor.x} y: {neighbor.y}") ### for testing ###
-            print(f"neighbor.x == current.x + 1 is: {neighbor.x == current.x + 1}")
-            print(f"neighbor.x == current.x - 1 is: {neighbor.x == current.x - 1}")
+            # for testing
+            print(
+                f"current is: x: {current.x} y: {current.y}\n"
+                f"neighbor is x: {neighbor.x} y: {neighbor.y}"
+            )
+            print(
+                "neighbor.x == current.x + 1 is: "
+                f"{neighbor.x == current.x + 1}"
+            )
+            print(
+                "neighbor.x == current.x - 1 is: "
+                f"{neighbor.x == current.x - 1}"
+            )
             raise InvalidCoordinates
     else:
         if neighbor.y == current.y - 1:

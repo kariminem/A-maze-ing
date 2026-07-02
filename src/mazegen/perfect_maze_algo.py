@@ -23,14 +23,7 @@ class InvalidCoordinates(MazeAlgoError):
     pass
 
 
-######## STILL OPEN ###########
-
-# 42 LOGO in Maze
-# print error message if maze is to small to display the 42 pattern
-# should the maze then still be displayed just without the 42 pattern??
-
-
-
+########### WHERE is the seed supposed to BEEEEEE ????? I think here is wrong
 # Defining seed to make maze reproducable
 myseed = 42
 # the "rndm" is now our own random-instance, based on the seed,

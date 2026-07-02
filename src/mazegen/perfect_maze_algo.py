@@ -3,7 +3,12 @@
 import random
 from .structure import Grid, Cell, Walls, OPPOSITE
 
-
+# I had to create an internal exception class to be able to raise an error when the coordinates of the current cell and its neighbor are not matching.
+# This is a sign that something went wrong in the maze generation algorithm.
+# the reason:
+# my exceptions that are implemented in config.py can't be imported here 
+# because we need everything to be self-contained in the maze generation algorithm, 
+# so that it can be used as a module in other projects without having to import anything else. 
 class MazeAlgoError(Exception):
     """Base class for errors raised by the maze generation algorithm."""
     pass

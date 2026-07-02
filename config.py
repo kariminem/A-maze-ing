@@ -160,20 +160,6 @@ def dict_validate(config_dict: dict[str, str]) -> dict[str, ConfigValue]:
 
 
 def load_config(config_file: str) -> dict[str, ConfigValue]:
-    """Read a KEY=VALUE config file and return validated config values.
-
-    Args:
-        config_file: Path to the config file (comments starting with '#'
-            and blank lines are ignored).
-
-    Returns:
-        The same typed dict produced by dict_validate().
-
-    Raises:
-        FileNotFoundError: config_file doesn't exist.
-        AmazingExceptions: Any config validation failure (see
-            dict_validate()'s Raises section for the specific subclasses).
-    """
     config_dict: dict[str, str] = {}
     with open(config_file, "r") as f:
         lines = [

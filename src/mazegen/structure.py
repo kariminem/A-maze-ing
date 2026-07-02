@@ -45,33 +45,59 @@ class Grid:
             for x in range(width):
                 row.append(Cell(x, y))
             self.cells.append(row)
-        # self.cells = [[Cell() for _ in range(width)] for _ in range(height)]
-        # -> creating 2D Array/List for Grid, each element is a Cell()
-        # object whose walls are all closed
+        forty_two_pattern(self)  # may remove that here if we use it generator.py
 
 
-# ================= TESTING =================
+# 42 LOGO in Maze
 
-# test_grid = Grid(5, 5)
-# # random test if all walls are closed. Should display 15 if closed
-# # since 8 + 4 + 2 + 1 = 15
-# print(test_grid.cells[0][0].walls)
-# print(test_grid.cells[2][1].walls)
-# print(test_grid.cells[4][4].walls)
+######### STILL OPEN ##############
+# print error message if maze is to small to display the 42 pattern
+# should the maze then still be displayed just without the 42 pattern??
 
-# # for testing this Grid representation change the Cell() in
-# # self.cells = … to f.ex 1
-# print(test_grid.cells[0])
-# print(test_grid.cells[1])
-# print(test_grid.cells[2])
-# print(test_grid.cells[3])
+def forty_two_pattern(grid: Grid):
+    """setting the 42 cells as blocked when creating the grid"""
+    # find horizontal middle of maze
+    # you may ask what happens if there is no ONE middle cell but 4
+    # We will not care! Since I'm rounding to an int, we will just take the
+    # left one
+    horizontal_middle = int(grid.width / 2)
+    vertical_middle = int(grid.height / 2)
+    middle_cell: Cell = grid.cells[vertical_middle][horizontal_middle]
 
-# # for testing the coordinates
-# print(test_grid.cells[0][0].x)
-# print(test_grid.cells[0][0].y)
-# print(test_grid.cells[1][1].x)
-# print(test_grid.cells[1][1].y)
-# print(test_grid.cells[2][2].x)
-# print(test_grid.cells[2][2].y)
-# print(test_grid.cells[4][3].x)
-# print(test_grid.cells[4][3].y)
+    # so now the blocking the pattern part
+
+    # doing the 4 first
+    # three left from the middle (four's horizontal line)
+    grid.cells[middle_cell.y][middle_cell.x - 1].blocked = True
+    grid.cells[middle_cell.y][middle_cell.x - 2].blocked = True
+    grid.cells[middle_cell.y][middle_cell.x - 3].blocked = True
+
+    # vertical upper 2 cells for the top of 4
+    grid.cells[middle_cell.y - 1][middle_cell.x - 3].blocked = True
+    grid.cells[middle_cell.y - 2][middle_cell.x - 3].blocked = True
+
+    # vertical lower 2 cells of the 4
+    grid.cells[middle_cell.y + 1][middle_cell.x - 1].blocked = True
+    grid.cells[middle_cell.y + 2][middle_cell.x - 1].blocked = True
+
+    # now the 2
+    # three right from the middle
+    grid.cells[middle_cell.y][middle_cell.x + 1].blocked = True
+    grid.cells[middle_cell.y][middle_cell.x + 2].blocked = True
+    grid.cells[middle_cell.y][middle_cell.x + 3].blocked = True
+
+    # upper half of 2
+    # horizontal line
+    grid.cells[middle_cell.y - 2][middle_cell.x + 1].blocked = True
+    grid.cells[middle_cell.y - 2][middle_cell.x + 2].blocked = True
+    grid.cells[middle_cell.y - 2][middle_cell.x + 3].blocked = True
+    # vertical one
+    grid.cells[middle_cell.y - 1][middle_cell.x + 3].blocked = True
+
+    # lower half of 2
+    # horizontal line
+    grid.cells[middle_cell.y + 2][middle_cell.x + 1].blocked = True
+    grid.cells[middle_cell.y + 2][middle_cell.x + 2].blocked = True
+    grid.cells[middle_cell.y + 2][middle_cell.x + 3].blocked = True
+    # vertical one
+    grid.cells[middle_cell.y + 1][middle_cell.x + 1].blocked = True

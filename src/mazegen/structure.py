@@ -3,7 +3,8 @@
 from enum import IntFlag
 
 
-# This is already the bit representation of the walls as we will need it for the output.
+# This is already the bit representation of the walls as we will need it
+# for the output.
 class Walls(IntFlag):
     NORTH = 1   # Bit 0
     EAST = 2    # Bit 1
@@ -44,19 +45,22 @@ class Grid:
             for x in range(width):
                 row.append(Cell(x, y))
             self.cells.append(row)
-        # self.cells = [[Cell() for _ in range(self.width)] for _ in range(self.height)]  # creating 2D Array/List for Grid each element is a Cell() Object which Walls are closed
-
+        # self.cells = [[Cell() for _ in range(width)] for _ in range(height)]
+        # -> creating 2D Array/List for Grid, each element is a Cell()
+        # object whose walls are all closed
 
 
 # ================= TESTING =================
 
 # test_grid = Grid(5, 5)
-# # random test if all walls are closed. Should display 15 if closed since 8 + 4 + 2 + 1 = 15
+# # random test if all walls are closed. Should display 15 if closed
+# # since 8 + 4 + 2 + 1 = 15
 # print(test_grid.cells[0][0].walls)
 # print(test_grid.cells[2][1].walls)
 # print(test_grid.cells[4][4].walls)
 
-# # for testing this Grid representation change the Cell() in self.cells = … to f.ex 1
+# # for testing this Grid representation change the Cell() in
+# # self.cells = … to f.ex 1
 # print(test_grid.cells[0])
 # print(test_grid.cells[1])
 # print(test_grid.cells[2])

@@ -3,12 +3,13 @@
 from .structure import Grid, Walls
 
 
-def put_hex_maze(grid: Grid) -> None:
-    """print hexa putput in output_maze.txt"""
-    with open("output_maze.txt", "w") as f:
+def put_hex_maze(grid: Grid, filename: str = "output_maze.txt") -> None:
+    """print hexa putput in the given output file"""
+    with open(filename, "w") as f:
         for row in grid.cells:
             for cell in row:
-                f.write(f"{cell.walls:X}")  # :X -> format specifiyer: display in uppercase hex
+                # :X -> format specifiyer: display in uppercase hex
+                f.write(f"{cell.walls:X}")
             f.write("\n")
 
 

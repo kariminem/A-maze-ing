@@ -23,7 +23,12 @@ class InvalidCoordinates(MazeAlgoError):
     pass
 
 
+########### WHERE is the seed supposed to BEEEEEE ????? I think here is wrong
 # Defining seed to make maze reproducable
+# this is just a draft! Seed is not allowed to be hardcoded
+# but should be either inputted with config file
+# or if not we will not use seed and just use
+# random -> not recreatable ???
 myseed = 42
 # the "rndm" is now our own random-instance, based on the seed,
 # to reproduce mazes, so instead of random.choice() we have
@@ -34,17 +39,17 @@ random_instance = random.Random(myseed)
 # call it with the cell where we begin so: x, y = entry and call
 # perfect_algo(grid, grid.cells[y][x])
 def perfect_algo(grid: Grid, cell: Cell) -> None:
+    """algorithm for creating a perfect maze"""
     cell.visited = True
 
-    unvisited_neighbors = get_unvisited_neighbors(grid, cell)
+    available_neighbors = get_available_neighbors(grid, cell)
 
-    while unvisited_neighbors:  # if we have an unvisited neighbor
-        # choose one randomly
-        next_cell = random_instance.choice(unvisited_neighbors)
+    while available_neighbors:  # if we have an unvisited neighbor
+        next_cell = random_instance.choice(available_neighbors)  # choose one randomly
         remove_wall_between(cell, next_cell)  # remove the wall between them
         perfect_algo(grid, next_cell)
 
-        unvisited_neighbors = get_unvisited_neighbors(grid, cell)
+        available_neighbors = get_available_neighbors(grid, cell)
 
     return
 
@@ -57,8 +62,8 @@ def get_neighbor(grid: Grid, x: int, y: int) -> Cell | None:
         return grid.cells[y][x]
 
 
-def get_unvisited_neighbors(grid: Grid, current: Cell):
-    """get a list of all unvisited neighbours of the input Cell"""
+def get_available_neighbors(grid: Grid, current: Cell):
+    """get a list of all unvisited and not-blocked neighbours of the input Cell"""
     # defining each neighbor as the direction they're in
     north = get_neighbor(grid, current.x, current.y - 1)
     east = get_neighbor(grid, current.x + 1, current.y)
@@ -66,19 +71,19 @@ def get_unvisited_neighbors(grid: Grid, current: Cell):
     west = get_neighbor(grid, current.x - 1, current.y)
 
     # creating a list for all the unvisited neighbors
-    unvisited_neighbors: list[Cell] = []
-    if north and not north.visited:  # the if <destination> part checks if you
+    available_neighbors: list[Cell] = []
+    if north and not north.visited and not north.blocked:  # the if <destination> part checks if you
         # have a neighbor in that direction.
         # If not the variable is None so if nort is false
-        unvisited_neighbors.append(north)
-    if east and not east.visited:
-        unvisited_neighbors.append(east)
-    if south and not south.visited:
-        unvisited_neighbors.append(south)
-    if west and not west.visited:
-        unvisited_neighbors.append(west)
+        available_neighbors.append(north)
+    if east and not east.visited and not east.blocked:
+        available_neighbors.append(east)
+    if south and not south.visited and not south.blocked:
+        available_neighbors.append(south)
+    if west and not west.visited and not west.blocked:
+        available_neighbors.append(west)
 
-    return unvisited_neighbors
+    return available_neighbors
 
 
 # FUNCTION SHOULD FIGURE ITSELF OUT WHICH WALLS TO BREAK

@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by casgarna, ktaher.*
+*This project has been created as part of the 42 curriculum by ktaher, casgarna.*
 
 # A-maze-ing
 
@@ -7,7 +7,7 @@
 A-maze-ing is a Python maze generator and solver built for the 42 curriculum. Given a
 plain-text configuration file, it generates a maze (perfect by default, meaning exactly
 one path between the entry and the exit), writes it to a file using a hexadecimal wall
-representation, and displays it — either as ASCII art in the terminal, or as an
+representation, and displays it, either as ASCII art in the terminal, or as an
 interactive graphical window using MiniLibX (MLX). The maze always contains a visible
 "42" shape made of permanently closed cells, unless the maze is too small to fit it, in
 which case an error is printed and generation continues without it.
@@ -60,14 +60,14 @@ PERFECT=True
 | `ENTRY` | Entry coordinates, as `x,y` |
 | `EXIT` | Exit coordinates, as `x,y` |
 | `OUTPUT_FILE` | Path to write the generated maze to |
-| `PERFECT` | `True` for exactly one path between entry and exit; `False` is accepted but not yet implemented (falls back to a perfect maze with a printed note) |
+| `PERFECT` | `True` for exactly one path between entry and exit; `False` we didnt implement this yet! |
 
 A default `config.txt` matching this exact format is included at the repository root.
 
 ## Chosen Maze Algorithm
 
 **Generation**: a randomized recursive backtracker (a seeded depth-first search). Chosen
-because it directly guarantees a *perfect* maze — a spanning tree — as a natural
+because it directly guarantees a *perfect* maze, a spanning tree, as a natural
 consequence of how it works (exactly one wall removed per newly visited cell), rather
 than needing extra logic bolted on afterward. That same spanning-tree property also
 automatically satisfies two other subject requirements for free: no fully open 2x2 area
@@ -106,16 +106,15 @@ again.
   showing walls, a colored entry/exit, the "42" pattern, and (toggleable) the solution
   path, with keyboard controls: `1` regenerate, `2` show/hide path, `3` rotate wall
   colors, `4`/Esc quit. Needs the vendored MiniLibX source compiled first
-  (`sh vendor/build_mlx.sh`) — see `WALKTHROUGH.md` for the full story of how that works
-  and why.
+  (`sh vendor/build_mlx.sh`).
 
 ## Team & Project Management
 
 **Roles**:
-- **Casie Lynn Garnatz** — the core maze data model (`Grid`/`Cell`/`Walls`), the
-  recursive-backtracker generation algorithm, and placing the "42" pattern.
-- **Karim Taher** — configuration parsing and validation, the `MazeGenerator` wrapper
-  class and packaging, CLI wiring (`a_maze_ing.py`), the flood-fill solver, and the MLX
+- **Casie Lynn Garnatz** / the core maze data model (`Grid`/`Cell`/`Walls`), the
+  recursive-backtracker generation algorithm, placing the "42" pattern and ASCII-Visualizing.
+- **Karim Taher** / configuration parsing and validation, the `MazeGenerator` wrapper
+  class and packaging, CLI wiring, flood-fill solver, and the MLX
   graphical visualizer.
 
 **Planning & evolution**: work started with config parsing (nothing else needs the maze
@@ -124,20 +123,8 @@ itself yet), then the core data model and generation algorithm, then the reusabl
 pattern and a real solver came next, and the MLX visualizer was added afterward as a
 bonus once the ASCII/ text pipeline was already fully working.
 
-**What worked well**: splitting ownership by file (data model and algorithm vs.
-config/packaging/CLI) meant both halves could be built and tested independently before
-being wired together, which is also what caught two real bugs early (a stale import
-depending on a file outside the installable package, and a `src`/`mazegen` naming clash
-that only `mypy .` run across the whole project surfaced).
-
-**What could be improved**: `SEED` isn't yet exposed through `config.txt` itself (only
-through the `MazeGenerator(seed=...)` Python API) — the CLI always generates a fresh maze
-rather than a reproducible one from the config file. The mandatory output-file format
-(Chapter IV.5) is also still missing its trailing entry/exit/solution-path block. The
-non-perfect (braided) maze mode described by `PERFECT=False` isn't implemented yet either.
-
-**Tools used**: Python 3.10+, `flake8`, `mypy`, `Makefile`-based task automation, `git`,
-and MiniLibX (bonus, graphical visualization only).
+**Tools used**: Python 3.10+, `flake8`, `mypy`, `Makefile`, `git`,
+and `MiniLibX` (bonus, graphical visualization only).
 
 ## Resources
 
@@ -147,9 +134,7 @@ and MiniLibX (bonus, graphical visualization only).
 - [Python random module — W3Schools](https://www.w3schools.com/python/module_random.asp)
 - [MiniLibX documentation (Gontjarow)](https://gontjarow.github.io/MiniLibX/)
 
-**How AI was used**: AI assistance (Claude) was used specifically for two things —
-building the MLX/`ctypes` graphical visualizer (vendoring and cross-platform-building
-MiniLibX, and writing the Python-to-C ctypes bridge, an area neither of us had prior
-experience with) and structuring/writing this README. The maze generation algorithm,
-the solver, configuration parsing, and packaging were designed and written by the team
-directly.
+**How AI was used**:
+
+- README structuring
+- wiring between MLX and python (ctypes)

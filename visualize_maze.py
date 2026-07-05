@@ -1,18 +1,5 @@
 #!/usr/bin/env python3
 
-# A second, optional entry point alongside a_maze_ing.py: reads the same
-# config file the same way, generates the maze the same way, but then
-# opens the interactive MLX graphical window (Chapter V's graphical
-# option) instead of only printing it as ASCII text.
-#
-# Kept as its own separate script, rather than folded into
-# a_maze_ing.py itself, so the subject's own mandated command --
-# `python3 a_maze_ing.py config.txt` -- stays exactly as specified:
-# fast, text-only, and with no graphical display or XQuartz dependency
-# at all. That matters because an automated grading script running
-# that exact command must not get stuck waiting on a graphical window
-# that never closes itself.
-
 import sys
 from typing import cast
 

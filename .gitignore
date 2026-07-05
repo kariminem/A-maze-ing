@@ -5,3 +5,7 @@ dist/
 build/
 *.egg-info/
 venv/
+WALKTHROUGH.md
+progress.txt
+maze.txt
+output_maze.txt

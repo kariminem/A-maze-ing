@@ -1,15 +1,6 @@
 #!/usr/bin/env python3
 
-# Self-contained MLX (minilibx-linux) visualizer for the maze structures
-# Casie's code already builds (Grid/Cell/Walls in structure.py) and already
-# renders as ASCII (output_maze.ascii_display, which walks the exact same
-# `for row in grid.cells: for cell in row` list this file reuses). Nothing
-# else in the repo is touched by this file; the only wiring point is the one
-# `MazeGenerator.visualize()` call added in generator.py.
-#
-# Background on what MLX is, why minilibx-linux specifically, and how
-# libmlx.dylib/.so gets built is documented in WALKTHROUGH.md, Part 3 and
-# in the "Visualization" section at the very end of that same file.
+# Interactive MLX (minilibx-linux) window for a mazegen Grid.
 
 from __future__ import annotations
 
@@ -37,9 +28,8 @@ BLOCKED_COLOR: RGB = (150, 150, 150)
 PATH_COLOR: RGB = (50, 120, 255)
 TEXT_COLOR = 0xFFFFFF
 
-# (change_in_x, change_in_y) step for each solve_floodfill.solve() direction
-# letter, used to turn its N/E/S/W path back into a set of (x, y) cells to
-# highlight on screen.
+# Step for each solve_floodfill.solve() direction letter, used to turn a
+# path of letters back into (x, y) cells.
 PATH_STEP_DELTAS: dict[str, tuple[int, int]] = {
     "N": (0, -1),
     "E": (1, 0),
@@ -63,14 +53,7 @@ KEYCODE_QUIT = ord("4")
 
 
 def locate_compiled_mlx_library() -> pathlib.Path:
-    """Find the compiled minilibx shared library file for this repo.
-
-    minilibx-linux does not come as a ready-made download -- it is C
-    source code that has to be compiled, once, into one finished file
-    before Python can use it at all (see vendor/build_mlx.sh). This
-    function simply looks in the one place that finished file is
-    expected to live, on either operating system this project supports.
-    """
+    """Find the compiled minilibx shared library (see vendor/build_mlx.sh)."""
     repository_root_folder = pathlib.Path(__file__).resolve().parents[2]
 
     for compiled_file_name in ("libmlx.dylib", "libmlx.so"):
@@ -80,33 +63,15 @@ def locate_compiled_mlx_library() -> pathlib.Path:
 
     raise RuntimeError(
         "Could not find build/libmlx.dylib or build/libmlx.so. Build "
-        "minilibx-linux first by running: sh vendor/build_mlx.sh "
-        "(see WALKTHROUGH.md, Part 3)."
+        "minilibx-linux first by running: sh vendor/build_mlx.sh"
     )
 
 
 class MlxBridge:
-    """Translates between Python and the compiled MiniLibX C library.
-
-    Python cannot call a C library's functions without first being told,
-    function by function, what kind of inputs it expects and what kind
-    of output it gives back. That one-time description is everything
-    this class does -- it has no idea what a maze even is. Every other
-    piece of maze-drawing logic lives in `MlxVisualizer` below instead.
-    """
+    """ctypes binding for the MiniLibX C functions this file calls."""
 
     def __init__(self) -> None:
-        """Load the compiled library and describe each function we use."""
-        # Step 1: locate and load the compiled C file built by
-        # vendor/build_mlx.sh (libmlx.dylib on macOS, libmlx.so on Linux).
         self.compiled_library = ctypes.CDLL(str(locate_compiled_mlx_library()))
-
-        # Step 2: tell Python exactly how to talk to the C library safely.
-        # For every MiniLibX function we plan to call, we declare its
-        # "argtypes" (the kind of value each argument must be) and its
-        # "restype" (the kind of value it hands back). Skipping this
-        # step is what would let Python send the wrong kind of data into
-        # C and crash the whole program with no helpful error message.
 
         self.compiled_library.mlx_init.restype = ctypes.c_void_p
 
@@ -154,27 +119,15 @@ class MlxBridge:
         self.compiled_library.mlx_loop.argtypes = [ctypes.c_void_p]
 
 
-# A reusable "shape" for the function we hand to MiniLibX to run every time
-# a key is pressed: it takes a keycode number and one extra raw pointer
-# MiniLibX always passes along (which we never need to use), and returns a
-# whole number MiniLibX ignores.
 KeyPressCallback = ctypes.CFUNCTYPE(
     ctypes.c_int, ctypes.c_int, ctypes.c_void_p,
 )
 
-# The finished image lives in memory as one giant list of individual color
-# bytes -- this is the type of that list once ctypes hands it back to us.
 PixelMemoryArray = ctypes.Array[ctypes.c_uint8]
 
 
 class MlxVisualizer:
-    """Interactive MiniLibX window rendering a mazegen `Grid`.
-
-    Maps each `Cell` to a `cell_size`-pixel square: `cell.walls` (the same
-    North/East/South/West bitmask `output_maze.ascii_display` reads) draws
-    the four edge lines, and entry/exit/blocked/path cells get a filled
-    color underneath those lines.
-    """
+    """Interactive MiniLibX window rendering a mazegen Grid."""
 
     def __init__(
         self,
@@ -186,10 +139,6 @@ class MlxVisualizer:
         self.grid: Grid = generator.get_structure()
         self.show_path = False
         self.wall_color_index = 0
-
-        # These start out empty because nothing has been drawn or bound
-        # to a key yet -- they get filled in the very first time draw()
-        # and setup_keyboard_controls() run.
         self.current_image_pointer: int | None = None
         self.key_press_callback: Any = None
 
@@ -198,8 +147,6 @@ class MlxVisualizer:
             self.grid.height * cell_size + CONTROL_BAR_HEIGHT
         )
 
-        # Open the actual connection to MiniLibX and create one real,
-        # visible window sized exactly to fit this maze.
         self.mlx_bridge = MlxBridge()
         self.current_mlx_pointer = self.mlx_bridge.compiled_library.mlx_init()
         self.current_window_pointer = (
@@ -219,12 +166,9 @@ class MlxVisualizer:
         self.mlx_bridge.compiled_library.mlx_loop(self.current_mlx_pointer)
 
     def draw(self) -> None:
-        """Render the whole maze into a brand-new image and show it."""
+        """Render the whole maze into a new image and show it."""
         library = self.mlx_bridge.compiled_library
 
-        # Step 1: ask MiniLibX for a blank image exactly the size of our
-        # window, and ask for direct access to its raw pixel memory so we
-        # can paint into it ourselves, one color at a time.
         new_image_pointer = library.mlx_new_image(
             self.current_mlx_pointer,
             self.window_width_in_pixels,
@@ -250,19 +194,12 @@ class MlxVisualizer:
             ctypes.POINTER(ctypes.c_uint8 * pixel_memory_array_size),
         ).contents
 
-        # Step 2: paint the whole image black first, as a clean canvas
-        # underneath everything else we are about to draw.
         self.paint_solid_rectangle(
             pixel_memory_array, bytes_per_image_row.value, bytes_per_pixel,
             0, 0, self.window_width_in_pixels, self.window_height_in_pixels,
             BACKGROUND_COLOR,
         )
 
-        # Step 3: work out which color the walls should currently be, and
-        # which cells (if any) belong to the solution path, then draw
-        # every single cell of the maze, one at a time, row by row -- the
-        # exact same `for row in grid.cells: for cell in row` order Casie's
-        # ascii_display() already uses.
         current_wall_color = WALL_COLOR_PALETTE[self.wall_color_index]
         solution_path_cells = (
             self.compute_solution_path_cells() if self.show_path else set()
@@ -275,10 +212,7 @@ class MlxVisualizer:
                     solution_path_cells,
                 )
 
-        # Step 4: throw away the previous frame's image (if there was
-        # one) now that the new one is ready, so we never build up an
-        # ever-growing pile of unused images in memory across repeated
-        # regenerate/toggle/color-change presses.
+        # drop the previous frame's image now that the new one is ready
         previous_image_pointer = self.current_image_pointer
         if previous_image_pointer is not None:
             library.mlx_destroy_image(
@@ -286,9 +220,6 @@ class MlxVisualizer:
             )
         self.current_image_pointer = new_image_pointer
 
-        # Step 5: hand the finished picture to MiniLibX so it actually
-        # appears in the window, then draw the one-line control reminder
-        # text on top of it.
         library.mlx_put_image_to_window(
             self.current_mlx_pointer, self.current_window_pointer,
             new_image_pointer, 0, 0,
@@ -334,9 +265,7 @@ class MlxVisualizer:
         entry_x, entry_y = self.generator.entry
         exit_x, exit_y = self.generator.exit
 
-        # Step 1: decide whether this particular cell needs a solid
-        # color pad underneath its walls -- and if several reasons could
-        # apply at once, this priority order decides which one wins.
+        # priority: blocked > entry > exit > path
         if cell.blocked:
             fill_color: RGB | None = BLOCKED_COLOR
         elif (cell.x, cell.y) == (entry_x, entry_y):
@@ -348,9 +277,6 @@ class MlxVisualizer:
         else:
             fill_color = None
 
-        # Step 2: paint the entry/exit/blocked/path pad first, before any
-        # wall lines go on top of it, so the walls stay clearly visible
-        # even over a colored cell.
         if fill_color is not None:
             self.paint_solid_rectangle(
                 pixel_memory_array, bytes_per_image_row, bytes_per_pixel,
@@ -358,9 +284,6 @@ class MlxVisualizer:
                 fill_color,
             )
 
-        # Step 3: draw a short line on whichever of the four edges this
-        # cell has a closed wall on -- reading the exact same North/East/
-        # South/West bits `output_maze.ascii_display` already reads.
         wall_thickness_in_pixels = WALL_THICKNESS
 
         if cell.walls & Walls.NORTH:
@@ -408,13 +331,7 @@ class MlxVisualizer:
         height: int,
         color: RGB,
     ) -> None:
-        """Write one solid-color rectangle directly into the image memory.
-
-        This writes color bytes one at a time, in a plain, easy-to-follow
-        double loop (every row, then every column in that row) rather
-        than a clever shortcut -- clarity here matters more than shaving
-        off a fraction of a second.
-        """
+        """Write one solid-color rectangle directly into the image memory."""
         red, green, blue = color
 
         for pixel_row in range(y, y + height):
@@ -424,41 +341,32 @@ class MlxVisualizer:
                 exact_byte_offset = (
                     row_start_offset + pixel_column * bytes_per_pixel
                 )
-                # MiniLibX stores each pixel's color as three consecutive
-                # bytes in this exact order: blue, then green, then red.
+                # MiniLibX pixel byte order is blue, green, red
                 pixel_memory_array[exact_byte_offset] = blue
                 pixel_memory_array[exact_byte_offset + 1] = green
                 pixel_memory_array[exact_byte_offset + 2] = red
 
     def setup_keyboard_controls(self) -> None:
-        """Tell MiniLibX which function to call whenever a key is pressed."""
+        """Register the MLX key callback that dispatches to our handler."""
         @KeyPressCallback
         def handle_key_press_event(
             keycode: int, unused_extra_data: int,
         ) -> int:
-            """Forward the raw keycode MiniLibX reports to our own logic."""
             self.process_keyboard_input(keycode)
             return 0
 
-        # This callback is kept as an attribute on purpose: if we let
-        # Python forget about it, it could be garbage-collected while
-        # MiniLibX still holds a raw pointer to it, which would crash the
-        # program the next time any key is pressed.
+        # kept as an attribute so ctypes doesn't garbage-collect it
         self.key_press_callback = handle_key_press_event
         self.mlx_bridge.compiled_library.mlx_key_hook(
             self.current_window_pointer, handle_key_press_event, None,
         )
 
     def process_keyboard_input(self, keycode: int) -> None:
-        """Carry out whichever action is bound to the key just pressed."""
+        """Run the action bound to a keycode (regen/path/color/quit)."""
         print(f"[visualizer] key received: keycode={keycode}")
 
         if keycode == KEYCODE_REGENERATE:
-            # A fixed seed makes generate() reproduce the identical maze
-            # on every call (that is the whole point of a seed) -- which
-            # would look exactly like "regenerate did nothing". A manual,
-            # user-triggered regenerate should visibly produce a new
-            # maze, so we pick a brand-new random seed for it every time.
+            # force a fresh seed so a manual regenerate is visibly different
             new_random_seed = random.randrange(2**32)
             self.generator.seed = new_random_seed
             self.generator.generate()

@@ -63,12 +63,20 @@ class MazeGenerator:
         grid = self.get_structure()
 
         try:
-            # when it gets done we can import it later, but for now we can
-            # just raise an error if it is not implemented yet
-            from .solve_perfect_maze import solve
+            # NOTE: solve_perfect_maze.py also exists (Casie's "starting
+            # BFS" stub) but solve_floodfill.py is the file that actually
+            # has a working solve() -- see WALKTHROUGH.md, Part 3, for the
+            # discrepancy between the two files.
+            from .solve_floodfill import solve
         except ImportError as exc:
             raise NotImplementedError(
-                "solve_perfect_maze.solve() is not implemented yet"
+                "solve_floodfill.solve() is not implemented yet"
             ) from exc
 
         return cast(list[str], solve(grid, self.entry, self.exit))
+
+    def visualize(self, cell_size: int = 20) -> None:
+        """Open an interactive MLX window showing the generated maze."""
+        from .visualizer import MlxVisualizer
+
+        MlxVisualizer(self, cell_size=cell_size).run()

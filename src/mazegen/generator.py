@@ -4,6 +4,7 @@ import random
 from typing import cast
 
 from . import perfect_maze_algo as pma
+from . import imperfect_maze as ipma
 from .structure import Grid
 
 
@@ -47,7 +48,11 @@ class MazeGenerator:
 
         grid = Grid(self.width, self.height)
         entry_x, entry_y = self.entry
-        pma.perfect_algo(grid, grid.cells[entry_y][entry_x])
+        
+        if self.perfect:
+            pma.perfect_algo(grid, grid.cells[entry_y][entry_x])
+        elif not self.perfect:
+            ipma.imperfect_algo(grid, grid.cells[entry_y][entry_x])
 
         self._grid = grid
         return grid

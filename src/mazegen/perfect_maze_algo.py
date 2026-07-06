@@ -22,6 +22,10 @@ class InvalidCoordinates(MazeAlgoError):
     """Exception raised when there is a coordinates missmatch"""
     pass
 
+class InvalidFlag(MazeAlgoError):
+    """Exception raised when there is a coordinates missmatch"""
+    pass
+
 
 ########### WHERE is the seed supposed to BEEEEEE ????? I think here is wrong
 # Defining seed to make maze reproducable
@@ -62,26 +66,43 @@ def get_neighbor(grid: Grid, x: int, y: int) -> Cell | None:
         return grid.cells[y][x]
 
 
-def get_available_neighbors(grid: Grid, current: Cell):
-    """get a list of all unvisited and not-blocked neighbours of the input Cell"""
+def get_available_neighbors(grid: Grid, current: Cell, flag: str = "perfect"):
+    """get a list of all unvisited and not-blocked neighbours of the input Cell
+        choose flag "imperfect" for only selecting un-blocked neighbors
+        and disregarding visited status"""
     # defining each neighbor as the direction they're in
-    north = get_neighbor(grid, current.x, current.y - 1)
-    east = get_neighbor(grid, current.x + 1, current.y)
-    south = get_neighbor(grid, current.x, current.y + 1)
-    west = get_neighbor(grid, current.x - 1, current.y)
+    north_neighbor = get_neighbor(grid, current.x, current.y - 1)
+    east_neighbor = get_neighbor(grid, current.x + 1, current.y)
+    south_neighbor = get_neighbor(grid, current.x, current.y + 1)
+    west_neighbor = get_neighbor(grid, current.x - 1, current.y)
 
-    # creating a list for all the unvisited neighbors
-    available_neighbors: list[Cell] = []
-    if north and not north.visited and not north.blocked:  # the if <destination> part checks if you
-        # have a neighbor in that direction.
-        # If not the variable is None so if nort is false
-        available_neighbors.append(north)
-    if east and not east.visited and not east.blocked:
-        available_neighbors.append(east)
-    if south and not south.visited and not south.blocked:
-        available_neighbors.append(south)
-    if west and not west.visited and not west.blocked:
-        available_neighbors.append(west)
+    if flag == "perfect":
+        # creating a list for all the unvisited and unblocked neighbors
+        available_neighbors: list[Cell] = []
+        if north_neighbor and not north_neighbor.visited and not north_neighbor.blocked:  # the if <destination> part checks if you
+            # have a neighbor in that direction.
+            # If not the variable is None so if nort is false
+            available_neighbors.append(north_neighbor)
+        if east_neighbor and not east_neighbor.visited and not east_neighbor.blocked:
+            available_neighbors.append(east_neighbor)
+        if south_neighbor and not south_neighbor.visited and not south_neighbor.blocked:
+            available_neighbors.append(south_neighbor)
+        if west_neighbor and not west_neighbor.visited and not west_neighbor.blocked:
+            available_neighbors.append(west_neighbor)
+
+    elif flag == "imperfect":
+        # creating a list for all the unblocked neighbors
+        available_neighbors: list[Cell] = []
+        if north_neighbor and not north_neighbor.blocked:
+            available_neighbors.append(north_neighbor)
+        if east_neighbor and not east_neighbor.blocked:
+            available_neighbors.append(east_neighbor)
+        if south_neighbor and not south_neighbor.blocked:
+            available_neighbors.append(south_neighbor)
+        if west_neighbor and not west_neighbor.blocked:
+            available_neighbors.append(west_neighbor)
+    else:
+        raise InvalidFlag
 
     return available_neighbors
 
@@ -100,18 +121,18 @@ def remove_wall_between(current: Cell, neighbor: Cell):
         else:
             # y == y and x == x ???? -> our neighbor is us
             # for testing
-            print(
-                f"current is: x: {current.x} y: {current.y}\n"
-                f"neighbor is x: {neighbor.x} y: {neighbor.y}"
-            )
-            print(
-                "neighbor.x == current.x + 1 is: "
-                f"{neighbor.x == current.x + 1}"
-            )
-            print(
-                "neighbor.x == current.x - 1 is: "
-                f"{neighbor.x == current.x - 1}"
-            )
+            # print(
+            #     f"current is: x: {current.x} y: {current.y}\n"
+            #     f"neighbor is x: {neighbor.x} y: {neighbor.y}"
+            # )
+            # print(
+            #     "neighbor.x == current.x + 1 is: "
+            #     f"{neighbor.x == current.x + 1}"
+            # )
+            # print(
+            #     "neighbor.x == current.x - 1 is: "
+            #     f"{neighbor.x == current.x - 1}"
+            # )
             raise InvalidCoordinates
     else:
         if neighbor.y == current.y - 1:

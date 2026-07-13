@@ -5,8 +5,6 @@ from .perfect_maze_algo import perfect_algo, remove_wall_between, InvalidCoordin
 from .structure import Grid, Cell, Walls
 from .structure import get_middle_cell
 
-# def check_open_spaces()
-
 
 def get_all_interior_walls(grid: Grid) -> list[tuple[Cell, Walls]]:
     """creata a list of all standing walls inside the grid
@@ -53,6 +51,21 @@ def imperfect_algo(grid: Grid, cell: Cell) -> None:
     remove_wall_between(grid.cells[0][grid.width - 1], grid.cells[0][grid.width - 2])
 
     # open center (just the one line between the 4 and the 2, I guess?)
+    middle_cell = get_middle_cell(grid)
+
+    # first random try of opening up the center (because I DON'T KNOW WHAT THEY MEAN BY THAT)
+    # if current (middle) cell has a wall bewol, remove it
+    if grid.cells[middle_cell.y][middle_cell.x].walls & Walls.SOUTH:
+        remove_wall_between(grid.cells[middle_cell.y][middle_cell.x], grid.cells[middle_cell.y + 1][middle_cell.x])
+    if grid.cells[middle_cell.y + 1][middle_cell.x].walls & Walls.SOUTH:
+        remove_wall_between(grid.cells[middle_cell.y + 1][middle_cell.x], grid.cells[middle_cell.y + 2][middle_cell.x])
+    # does the middle cell have a north wall, remove it
+    if grid.cells[middle_cell.y][middle_cell.x].walls & Walls.NORTH:
+        remove_wall_between(grid.cells[middle_cell.y][middle_cell.x], grid.cells[middle_cell.y - 1][middle_cell.x])
+    if grid.cells[middle_cell.y - 1][middle_cell.x].walls & Walls.WEST:
+        remove_wall_between(grid.cells[middle_cell.y - 1][middle_cell.x], grid.cells[middle_cell.y - 1][middle_cell.x - 1])
+    if grid.cells[middle_cell.y - 1][middle_cell.x - 1].walls & Walls.NORTH:
+        remove_wall_between(grid.cells[middle_cell.y - 1][middle_cell.x - 1], grid.cells[middle_cell.y - 2][middle_cell.x - 1])
 
     interior_walls = get_all_interior_walls(grid)
     random.shuffle(interior_walls)
@@ -74,16 +87,45 @@ def imperfect_algo(grid: Grid, cell: Cell) -> None:
             neighbor = grid.cells[current_cell.y][current_cell.x - 1]
         else:
             raise InvalidCoordinates
-        
+
         # protect 42 pattern
-        if current_cell.blocked or neighbor.blocked:
+        if current_cell.blocked or neighbor.blocked or would_create_2x2_spaces(grid, current_cell, neighbor, direction):
             continue
         else:
             remove_wall_between(current_cell, neighbor)
             walls_to_remove -= 1
 
 
-    # STIL OPEN:
-    # check if a 3x3 open field would be created before breaking walls
+def would_create_2x2_spaces(grid: Grid, current: Cell, neighbor: Cell, direction_current_wall: Walls) -> bool:
+    """function for avoiding creating 2x2 grids"""
+    # checking for a vertical wall
+    if direction_current_wall == Walls.EAST:
+        # looking at the 2 cells above us only if we're not row 0
+        if current.y > 0:
+            if (not (current.walls & Walls.NORTH)) and \
+               (not (neighbor.walls & Walls.NORTH)) and \
+               (not (grid.cells[current.y - 1][current.x].walls & Walls.EAST)):
+                return True
+    # looking at the 2 cells below us
+        if current.y < grid.height - 1:
+            if (not (current.walls & Walls.SOUTH)) and \
+               (not (neighbor.walls & Walls.SOUTH)) and \
+               (not (grid.cells[current.y + 1][current.x].walls & Walls.EAST)):
+                return True
 
+    # checking for a horizontal wall
+    elif direction_current_wall == Walls.SOUTH:
+        # looking at the 2 cells left of us only if we're not collumn 0
+        if current.x > 0:
+            if (not (current.walls & Walls.WEST)) and \
+               (not (neighbor.walls & Walls.WEST)) and \
+               (not (grid.cells[current.y][current.x - 1].walls & Walls.SOUTH)):
+                return True
+    # looking at the 2 cells right of us
+        if current.y < grid.width - 1:
+            if (not (current.walls & Walls.EAST)) and \
+               (not (neighbor.walls & Walls.EAST)) and \
+               (not (grid.cells[current.y][current.x + 1].walls & Walls.SOUTH)):
+                return True
 
+    return False

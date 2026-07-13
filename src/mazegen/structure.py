@@ -48,21 +48,23 @@ class Grid:
         forty_two_pattern(self)  # may remove that here if we use it generator.py
 
 
-# 42 LOGO in Maze
-
-######### STILL OPEN ##############
-# print error message if maze is to small to display the 42 pattern
-# should the maze then still be displayed just without the 42 pattern??
-
-def forty_two_pattern(grid: Grid):
-    """setting the 42 cells as blocked when creating the grid"""
-    # find horizontal middle of maze
+def get_middle_cell(grid: Grid) -> Cell:
+    """find middle cell of maze"""
     # you may ask what happens if there is no ONE middle cell but 4
     # We will not care! Since I'm rounding to an int, we will just take the
     # left one
     horizontal_middle = int(grid.width / 2)
     vertical_middle = int(grid.height / 2)
     middle_cell: Cell = grid.cells[vertical_middle][horizontal_middle]
+
+    return middle_cell
+
+
+# 42 LOGO in Maze
+def forty_two_pattern(grid: Grid):
+    """setting the 42 cells as blocked when creating the grid"""
+
+    middle_cell = get_middle_cell(grid)
 
     # display error message if grid is too small to put 42 pattern
     # decided for 8 here because if its 8 then there are isolated
@@ -71,7 +73,7 @@ def forty_two_pattern(grid: Grid):
     if grid.width <= 8 or grid.height <= 6:
         print("42 Pattern Error: grid is too small to display 42 patter. Proceeding without")
         return
-    
+
     # so now the blocking the pattern part
 
     # doing the 4 first

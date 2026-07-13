@@ -3,8 +3,10 @@
 import random
 from .perfect_maze_algo import perfect_algo, remove_wall_between, InvalidCoordinates
 from .structure import Grid, Cell, Walls
+from .structure import get_middle_cell
 
 # def check_open_spaces()
+
 
 def get_all_interior_walls(grid: Grid) -> list[tuple[Cell, Walls]]:
     """creata a list of all standing walls inside the grid
@@ -33,7 +35,7 @@ def get_all_interior_walls(grid: Grid) -> list[tuple[Cell, Walls]]:
 def imperfect_algo(grid: Grid, cell: Cell) -> None:
     """
     >>> opening up the edges and centre
-    >>> making each corridor is reachable
+    >>> making each corridor reachable
     >>> breaking in some walls to make the maze imperfect
     >>> removing dead-ends
     """
@@ -49,6 +51,8 @@ def imperfect_algo(grid: Grid, cell: Cell) -> None:
     remove_wall_between(grid.cells[grid.height - 1][grid.width - 1], grid.cells[grid.height - 1][grid.width - 2])
     remove_wall_between(grid.cells[0][grid.width - 1], grid.cells[1][grid.width - 1])
     remove_wall_between(grid.cells[0][grid.width - 1], grid.cells[0][grid.width - 2])
+
+    # open center (just the one line between the 4 and the 2, I guess?)
 
     interior_walls = get_all_interior_walls(grid)
     random.shuffle(interior_walls)

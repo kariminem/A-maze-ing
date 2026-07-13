@@ -29,7 +29,7 @@ class InvalidCoordinates(MazeAlgoError):
 # but should be either inputted with config file
 # or if not we will not use seed and just use
 # random -> not recreatable ???
-myseed = 42
+myseed = random.randint(0, 10)
 # the "rndm" is now our own random-instance, based on the seed,
 # to reproduce mazes, so instead of random.choice() we have
 # to use random_instance.choice()

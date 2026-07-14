@@ -54,12 +54,12 @@ def imperfect_algo(grid: Grid, cell: Cell) -> None:
     middle_cell = get_middle_cell(grid)
 
     # first random try of opening up the center (because I DON'T KNOW WHAT THEY MEAN BY THAT)
-    # if current (middle) cell has a wall bewol, remove it
     if grid.cells[middle_cell.y][middle_cell.x].walls & Walls.SOUTH:
         remove_wall_between(grid.cells[middle_cell.y][middle_cell.x], grid.cells[middle_cell.y + 1][middle_cell.x])
     if grid.cells[middle_cell.y + 1][middle_cell.x].walls & Walls.SOUTH:
         remove_wall_between(grid.cells[middle_cell.y + 1][middle_cell.x], grid.cells[middle_cell.y + 2][middle_cell.x])
-    # does the middle cell have a north wall, remove it
+    if grid.cells[middle_cell.y + 2][middle_cell.x].walls & Walls.SOUTH:
+        remove_wall_between(grid.cells[middle_cell.y + 2][middle_cell.x], grid.cells[middle_cell.y + 3][middle_cell.x])
     if grid.cells[middle_cell.y][middle_cell.x].walls & Walls.NORTH:
         remove_wall_between(grid.cells[middle_cell.y][middle_cell.x], grid.cells[middle_cell.y - 1][middle_cell.x])
     if grid.cells[middle_cell.y - 1][middle_cell.x].walls & Walls.WEST:
@@ -129,3 +129,39 @@ def would_create_2x2_spaces(grid: Grid, current: Cell, neighbor: Cell, direction
                 return True
 
     return False
+
+
+# still have to test and incorporate it in the porgramm
+def remove_dead_ends(grid: Grid) -> None:
+    """removes the dead ends in the grid"""
+    for y in range(grid.height):
+        for x in range(grid.width):
+            current_cell = grid.cells[y][x]
+            if current_cell.walls.bit_count() == 3:
+                closed_walls: list[Walls] = []
+                if current_cell.walls & Walls.NORTH and y > 0:
+                    closed_walls.append(Walls.NORTH)
+                if current_cell.walls & Walls.EAST and x < grid.width - 1:
+                    closed_walls.append(Walls.EAST)
+                if current_cell.walls & Walls.SOUTH and y < grid.height - 1:
+                    closed_walls.append(Walls.SOUTH)
+                if current_cell.walls & Walls.WEST and x > 0:
+                    closed_walls.append(Walls.WEST)
+                random.shuffle(closed_walls)
+                
+                for wall in closed_walls:
+                    if wall == Walls.NORTH:
+                        neighbor = grid.cells[current_cell.y - 1][current_cell.x]
+                    elif wall == Walls.EAST:
+                        neighbor = grid.cells[current_cell.y][current_cell.x + 1]
+                    elif wall == Walls.SOUTH:
+                        neighbor = grid.cells[current_cell.y + 1][current_cell.x]
+                    elif wall == Walls.WEST:
+                        neighbor = grid.cells[current_cell.y][current_cell.x - 1]
+                    else:
+                        raise InvalidCoordinates
+
+                    if would_create_2x2_spaces(grid, current_cell, neighbor, wall):
+                        continue
+                    else:
+                        remove_wall_between(current_cell, neighbor)

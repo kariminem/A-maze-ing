@@ -34,11 +34,11 @@ def main() -> None:
     perfect = cast(bool, cfg["PERFECT"])
     output_file = cast(str, cfg["OUTPUT_FILE"])
 
-    if not perfect:
-        print(
-            "Note: non-perfect maze generation isn't implemented yet; "
-            "generating a perfect maze instead."
-        )
+    # if not perfect:
+    #     print(
+    #         "Note: non-perfect maze generation isn't implemented yet; "
+    #         "generating a perfect maze instead."
+    #     )
 
     try:
         generator = MazeGenerator(

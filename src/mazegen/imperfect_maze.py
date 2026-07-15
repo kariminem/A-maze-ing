@@ -95,9 +95,19 @@ def imperfect_algo(grid: Grid, cell: Cell) -> None:
             remove_wall_between(current_cell, neighbor)
             walls_to_remove -= 1
 
+    remove_dead_ends(grid)
+
 
 def would_create_2x2_spaces(grid: Grid, current: Cell, neighbor: Cell, direction_current_wall: Walls) -> bool:
     """function for avoiding creating 2x2 grids"""
+
+    # here we turn the two directions around in logic here so we only have to test for 2 directions
+    # since a west neigbor can be the current_cell as well and have a east neighbor
+    if direction_current_wall == Walls.WEST:
+        current, neighbor, direction_current_wall = neighbor, current, Walls.EAST
+
+    elif direction_current_wall == Walls.NORTH:
+        current, neighbor, direction_current_wall = neighbor, current, Walls.SOUTH
     # checking for a vertical wall
     if direction_current_wall == Walls.EAST:
         # looking at the 2 cells above us only if we're not row 0
@@ -122,7 +132,7 @@ def would_create_2x2_spaces(grid: Grid, current: Cell, neighbor: Cell, direction
                (not (grid.cells[current.y][current.x - 1].walls & Walls.SOUTH)):
                 return True
     # looking at the 2 cells right of us
-        if current.y < grid.width - 1:
+        if current.x < grid.width - 1:
             if (not (current.walls & Walls.EAST)) and \
                (not (neighbor.walls & Walls.EAST)) and \
                (not (grid.cells[current.y][current.x + 1].walls & Walls.SOUTH)):
@@ -137,6 +147,7 @@ def remove_dead_ends(grid: Grid) -> None:
     for y in range(grid.height):
         for x in range(grid.width):
             current_cell = grid.cells[y][x]
+
             if current_cell.walls.bit_count() == 3:
                 closed_walls: list[Walls] = []
                 if current_cell.walls & Walls.NORTH and y > 0:
@@ -148,7 +159,7 @@ def remove_dead_ends(grid: Grid) -> None:
                 if current_cell.walls & Walls.WEST and x > 0:
                     closed_walls.append(Walls.WEST)
                 random.shuffle(closed_walls)
-                
+
                 for wall in closed_walls:
                     if wall == Walls.NORTH:
                         neighbor = grid.cells[current_cell.y - 1][current_cell.x]
@@ -161,7 +172,7 @@ def remove_dead_ends(grid: Grid) -> None:
                     else:
                         raise InvalidCoordinates
 
-                    if would_create_2x2_spaces(grid, current_cell, neighbor, wall):
+                    if would_create_2x2_spaces(grid, current_cell, neighbor, wall) or current_cell.blocked or neighbor.blocked:
                         continue
                     else:
                         remove_wall_between(current_cell, neighbor)

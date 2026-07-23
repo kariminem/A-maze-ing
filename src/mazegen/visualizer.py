@@ -62,6 +62,7 @@ class MlxVisualizer:
         generator: "MazeGenerator",
         cell_size: int = DEFAULT_CELL_SIZE,
     ) -> None:
+        """Open the MLX window sized for this generator's current maze."""
         self.generator = generator
         self.cell_size = cell_size
         self.grid: Grid = generator.get_structure()

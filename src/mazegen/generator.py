@@ -48,7 +48,7 @@ class MazeGenerator:
 
         grid = Grid(self.width, self.height)
         entry_x, entry_y = self.entry
-        
+
         if self.perfect:
             pma.perfect_algo(grid, grid.cells[entry_y][entry_x])
         elif not self.perfect:

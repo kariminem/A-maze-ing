@@ -148,7 +148,7 @@ def remove_dead_ends(grid: Grid) -> None:
         for x in range(grid.width):
             current_cell = grid.cells[y][x]
 
-            if current_cell.walls.bit_count() == 3:
+            if int(current_cell.walls).bit_count() == 3:
                 closed_walls: list[Walls] = []
                 if current_cell.walls & Walls.NORTH and y > 0:
                     closed_walls.append(Walls.NORTH)

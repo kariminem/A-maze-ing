@@ -2,11 +2,21 @@
 # might find lying around with these same names.
 .PHONY: install run debug clean lint lint-strict visualize package
 
-# Installs the tools needed to lint this project and build its .whl package,
-# plus the official mlx package (vendor/mlx-2.2.tgz) for MLX visualization.
+# Where the dev tools (flake8, mypy, build, mlx) get installed. A venv,
+# not the system Python, because modern Debian/Ubuntu (including WSL)
+# refuse plain `pip install` outside one (PEP 668, "externally-managed-
+# environment"). a_maze_ing.py itself needs none of this -- it only
+# uses Python's standard library -- so `run`/`debug` below still use
+# plain `python3` directly, exactly as the subject's mandated command.
+VENV = venv
+VENV_PYTHON = $(VENV)/bin/python3
+
+# Creates the venv above and installs flake8, mypy, build into it, plus
+# the official mlx package (vendor/mlx-2.2.tgz) for MLX visualization.
 install:
-	python3 -m pip install flake8 mypy build
-	sh vendor/install_mlx.sh
+	python3 -m venv $(VENV)
+	$(VENV_PYTHON) -m pip install flake8 mypy build
+	PATH="$(VENV)/bin:$$PATH" sh vendor/install_mlx.sh
 
 # Runs the actual program 'python3 a_maze_ing.py config.txt'
 run:
@@ -25,19 +35,19 @@ clean:
 
 # Runs the two mandatory checks the subject requires
 lint:
-	flake8 .
-	mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
+	$(VENV_PYTHON) -m flake8 .
+	$(VENV_PYTHON) -m mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 
 # just a stronger check.
 lint-strict:
-	flake8 .
-	mypy . --strict
+	$(VENV_PYTHON) -m flake8 .
+	$(VENV_PYTHON) -m mypy . --strict
 
 # Opens the interactive MLX graphical window instead of the ASCII
-# display. Needs the mlx package installed first (make install, or
-# sh vendor/install_mlx.sh directly) -- Linux only, no macOS build.
+# display. Needs the mlx package installed first (make install) --
+# Linux only, no macOS build.
 visualize:
-	python3 visualize_maze.py config.txt
+	$(VENV_PYTHON) visualize_maze.py config.txt
 
 # Rebuilds mazegen-0.1.0-py3-none-any.whl at the repository root from
 # the current source in src/mazegen/. Separate from `run` on purpose:
@@ -45,5 +55,5 @@ visualize:
 # itself, so it should not silently rebuild every time you just want
 # to run the program.
 package:
-	python3 -m build
+	$(VENV_PYTHON) -m build
 	cp dist/mazegen-0.1.0-py3-none-any.whl .

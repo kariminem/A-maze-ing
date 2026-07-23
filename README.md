@@ -46,9 +46,16 @@ extra step is only needed on an older local machine, not during actual evaluatio
 ```bash
 make install
 ```
-This installs `flake8` and `mypy` (tools that check the code for mistakes), `build`
-(the tool that packages the project), and, on Linux only, the graphical `mlx` library
-(see "Visual Representation" below for why Mac is different).
+This creates a `venv/` folder (a self-contained space for installing tools, so they
+don't interfere with anything else already on your machine — the subject itself
+recommends this) and installs `flake8`/`mypy` (checks the code for mistakes), `build`
+(packages the project), and, on Linux only, the graphical `mlx` library (see "Visual
+Representation" below for why Mac is different) into it. This is also why plain
+`pip install ...` typically fails on a fresh Ubuntu/Debian machine (including WSL) with
+an "externally-managed-environment" error — modern Linux blocks installing Python
+packages system-wide by default; `make install` avoids that entirely by using its own
+`venv/` instead. You don't need to activate it yourself — every `make` command already
+knows to use it.
 
 **4. Run the maze generator.**
 ```bash

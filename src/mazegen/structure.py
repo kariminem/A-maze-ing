@@ -45,7 +45,7 @@ class Grid:
             for x in range(width):
                 row.append(Cell(x, y))
             self.cells.append(row)
-        forty_two_pattern(self)  # may remove that here if we use it generator.py
+        forty_two_pattern(self)
 
 
 def get_middle_cell(grid: Grid) -> Cell:
@@ -61,17 +61,17 @@ def get_middle_cell(grid: Grid) -> Cell:
 
 
 # 42 LOGO in Maze
-def forty_two_pattern(grid: Grid):
+def forty_two_pattern(grid: Grid) -> None:
     """setting the 42 cells as blocked when creating the grid"""
 
     middle_cell = get_middle_cell(grid)
 
-    # display error message if grid is too small to put 42 pattern
-    # decided for 8 here because if its 8 then there are isolated
-    # cells in the lower part of 2 to the right border
-    # and under 8 it wouldnt even fit 
+    # too small to fit the pattern with some margin around it
     if grid.width <= 8 or grid.height <= 6:
-        print("42 Pattern Error: grid is too small to display 42 patter. Proceeding without")
+        print(
+            "42 Pattern Error: grid is too small to display 42 pattern. "
+            "Proceeding without it."
+        )
         return
 
     # so now the blocking the pattern part

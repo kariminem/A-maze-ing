@@ -71,7 +71,12 @@ class ExceedingMazeLimit(AmazingExceptions):
     pass
 
 
-ConfigValue = int | str | list[int] | bool
+class InvalidSeedInput(AmazingExceptions):
+    """Exception raised for an invalid seed value in the config."""
+    pass
+
+
+ConfigValue = int | str | list[int] | bool | None
 
 
 def dict_validate(config_dict: dict[str, str]) -> dict[str, ConfigValue]:
@@ -92,7 +97,7 @@ def dict_validate(config_dict: dict[str, str]) -> dict[str, ConfigValue]:
         InvalidEntryInput: ENTRY is not a valid "x,y" pair of ints.
         InvalidExitInput: EXIT is not a valid "x,y" pair of ints.
         EmptyFileName: OUTPUT_FILE is empty.
-        InvalidPerfectPathInput: PERFECT is not True/False (or 1/0).
+        InvalidPerfectPathInput: PERFECT is not True or False.
         ExceedingMazeLimit: ENTRY or EXIT falls outside WIDTH x HEIGHT.
     """
     input_params = [
@@ -144,14 +149,22 @@ def dict_validate(config_dict: dict[str, str]) -> dict[str, ConfigValue]:
                 raise EmptyFileName("Empty Output File Name")
             final_dict[key] = value
         elif key == "PERFECT":
-            if value == "True" or value == 1:
+            if value == "True":
                 final_dict[key] = True
-            elif value == "False" or value == 0:
+            elif value == "False":
                 final_dict[key] = False
             else:
                 raise InvalidPerfectPathInput(
                     "Invalid perfect path specifier, set to True or False"
                 )
+        elif key == "SEED":
+            try:
+                final_dict[key] = int(value)
+            except ValueError:
+                raise InvalidSeedInput("Invalid Seed Input")
+
+    if "SEED" not in final_dict:
+        final_dict["SEED"] = None
 
     if (exit_[0] >= width or exit_[1] >= height
             or entry[0] >= width or entry[1] >= height):

@@ -26,8 +26,8 @@ def main() -> None:
 
     width = cast(int, cfg["WIDTH"])
     height = cast(int, cfg["HEIGHT"])
-    entry = cast(list, cfg["ENTRY"])
-    exit_coords = cast(list, cfg["EXIT"])
+    entry = cast(list[int], cfg["ENTRY"])
+    exit_coords = cast(list[int], cfg["EXIT"])
     perfect = cast(bool, cfg["PERFECT"])
 
     try:

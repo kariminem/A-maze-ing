@@ -4,4 +4,8 @@ HEIGHT=15
 ENTRY=0,0
 EXIT=19,14
 OUTPUT_FILE=maze.txt
-PERFECT=False
+PERFECT=True
+# SEED is optional. Set it to any whole number to always get the exact
+# same maze back. Leave it out (or delete the line) for a fresh maze
+# every time the program runs.
+SEED=42

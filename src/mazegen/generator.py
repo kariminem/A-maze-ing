@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import random
-from typing import cast
 
 from . import perfect_maze_algo as pma
 from . import imperfect_maze as ipma
@@ -48,6 +47,12 @@ class MazeGenerator:
 
         grid = Grid(self.width, self.height)
         entry_x, entry_y = self.entry
+        exit_x, exit_y = self.exit
+
+        if grid.cells[entry_y][entry_x].blocked:
+            raise MazeGenerationError("entry falls on the '42' pattern")
+        if grid.cells[exit_y][exit_x].blocked:
+            raise MazeGenerationError("exit falls on the '42' pattern")
 
         if self.perfect:
             pma.perfect_algo(grid, grid.cells[entry_y][entry_x])
@@ -68,17 +73,13 @@ class MazeGenerator:
         grid = self.get_structure()
 
         try:
-            # NOTE: solve_perfect_maze.py also exists (Casie's "starting
-            # BFS" stub) but solve_floodfill.py is the file that actually
-            # has a working solve() -- see WALKTHROUGH.md, Part 3, for the
-            # discrepancy between the two files.
             from .solve_floodfill import solve
         except ImportError as exc:
             raise NotImplementedError(
                 "solve_floodfill.solve() is not implemented yet"
             ) from exc
 
-        return cast(list[str], solve(grid, self.entry, self.exit))
+        return solve(grid, self.entry, self.exit)
 
     def visualize(self, cell_size: int = 20) -> None:
         """Open an interactive MLX window showing the generated maze."""

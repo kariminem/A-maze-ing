@@ -7,44 +7,124 @@
 A-maze-ing is a Python maze generator and solver built for the 42 curriculum. Given a
 plain-text configuration file, it generates a maze — perfect (exactly one path between
 entry and exit) or non-perfect (looped, with multiple routes) — writes it to a file
-using a hexadecimal wall representation, and displays it, either as ASCII art in the
-terminal, or as an interactive graphical window using MiniLibX (MLX). The maze always
-contains a visible "42" shape made of permanently closed cells, unless the maze is too
-small to fit it, in which case an error is printed and generation continues without it.
+using a hexadecimal wall representation plus the entry, exit, and solution path, and
+displays it interactively, either as colored ASCII art in the terminal, or as a
+graphical MLX window. The maze always contains a visible "42" shape made of permanently
+closed cells, unless the maze is too small to fit it, in which case an error is printed
+and generation continues without it.
 
 The maze-generation logic is also packaged as a standalone, pip-installable module
 (`mazegen`) so it can be reused in other projects independently of this CLI.
 
-## Instructions
+## How to Run and Test This, Step by Step
 
-Requirements: Python 3.10 or later. `flake8`, `mypy`, and `build` are only needed for
-linting and packaging, not for running the maze generator itself.
+This section assumes no prior coding experience. Every command below is meant to be
+typed exactly as written, into a program called "Terminal" (on macOS) or a terminal
+application on Linux.
 
+**1. Open a terminal and go to the project folder.**
 ```bash
-git clone <this repository>
 cd A-maze-ing
-make install        # installs flake8, mypy, build, and the mlx package (Linux only)
-make run             # runs: python3 a_maze_ing.py config.txt
-make debug            # same, through Python's pdb debugger
-make lint             # flake8 . and the subject's mandatory mypy flags
-make lint-strict       # flake8 . and mypy --strict (optional, stronger)
-make clean              # removes __pycache__ and .mypy_cache
 ```
 
-Two extra, non-mandatory targets:
+**2. Check your Python version — must be 3.10 or later.**
 ```bash
-make visualize   # opens the interactive MLX graphical window instead of ASCII
-make package     # rebuilds mazegen-0.1.0-py3-none-any.whl from source
+python3 --version
 ```
+If this prints something below `3.10` (this can happen on some Macs, where the
+built-in `python3` is older than that), install a newer Python (e.g.
+[python.org](https://www.python.org/downloads/) or `brew install python@3.11`), then
+create and activate a virtual environment with it before continuing:
+```bash
+python3.11 -m venv venv
+source venv/bin/activate
+```
+42 Berlin's own Linux machines already have Python 3.10+ as `python3` directly, so this
+extra step is only needed on an older local machine, not during actual evaluation.
 
-It's recommended to use a virtual environment during development
-(`python3 -m venv venv && source venv/bin/activate`), per the subject's own guidelines.
+**3. Install the project's dependencies.**
+```bash
+make install
+```
+This installs `flake8` and `mypy` (tools that check the code for mistakes), `build`
+(the tool that packages the project), and, on Linux only, the graphical `mlx` library
+(see "Visual Representation" below for why Mac is different).
 
-`maze_analyzer.py`, provided with the subject, checks an output file's wall coherence
-and whether it's a genuine perfect/non-perfect maze:
+**4. Run the maze generator.**
+```bash
+make run
+```
+This is identical to running `python3 a_maze_ing.py config.txt` directly — `config.txt`,
+already included in this folder, is the settings file it reads. A maze appears in the
+terminal immediately, followed by a small numbered menu:
+```
+1) Regenerate maze
+2) Show solution path
+3) Change wall color
+4) Quit
+Choice? (1-4):
+```
+Type a number and press Enter to try each option. Type `4` and press Enter to stop.
+
+**5. Look at the file it produced.**
+```bash
+cat maze.txt
+```
+This is the actual result of the program: one line of letters/numbers per row of the
+maze (its walls, in hexadecimal), then a blank line, then the entry coordinates, the
+exit coordinates, and the solution path. This is explained in full further down.
+
+**6. Check the maze is actually valid**, using the checker tool provided with this
+project's assignment:
 ```bash
 python3 maze_analyzer.py maze.txt
 ```
+This prints a report confirming the maze has no broken walls, is fully reachable, and
+(if `PERFECT=True` in `config.txt`) has exactly one solution.
+
+**7. Run the code-quality checks.**
+```bash
+make lint
+```
+This should finish with no errors printed at all. If you see error messages, something
+in the code doesn't meet the project's requirements.
+
+**8. Test the reusable package, in total isolation**, exactly the way this project will
+actually be evaluated (per the subject: *"in a virtualenv or equivalent, install the
+needed tools and build your package again from your sources"*):
+```bash
+python3 -m venv /tmp/test_environment
+source /tmp/test_environment/bin/activate
+pip install build
+python3 -m build
+pip install dist/mazegen-0.1.0-py3-none-any.whl
+python3 -c "from mazegen import MazeGenerator; g = MazeGenerator(width=10, height=10, seed=1); g.generate(); print('It works:', g.get_solution())"
+deactivate
+```
+Walking through what just happened: `python3 -m venv /tmp/test_environment` creates a
+brand new, empty, throwaway Python setup, completely separate from this project folder
+(this mirrors exactly how an evaluator will test it — on a machine that has never seen
+this code before). `source .../activate` switches your terminal into using that empty
+setup. `python3 -m build` rebuilds the installable package from scratch, straight from
+the source code in `src/mazegen/`. `pip install dist/...whl` installs *only* that
+freshly built package into the empty setup — nothing else from this project folder is
+available to it. The final line proves the package genuinely works completely on its
+own. `deactivate` switches your terminal back to normal.
+
+**9. Optional: the graphical version (Linux only).**
+```bash
+make visualize
+```
+Opens an interactive window instead of the terminal display, with the same 4 controls.
+This only works on Linux (see "Visual Representation" below) — running it on macOS will
+show a "No module named mlx" error, which is expected, not a bug.
+
+**10. Clean up afterward.**
+```bash
+make clean
+```
+Removes temporary files Python created while running (`__pycache__`, `.mypy_cache`).
+Safe to run any time; nothing important is deleted.
 
 ## Configuration File
 
@@ -57,6 +137,7 @@ ENTRY=0,0
 EXIT=19,14
 OUTPUT_FILE=maze.txt
 PERFECT=True
+SEED=42
 ```
 
 | Key | Description |
@@ -67,11 +148,25 @@ PERFECT=True
 | `EXIT` | Exit coordinates, as `x,y` |
 | `OUTPUT_FILE` | Path to write the generated maze to |
 | `PERFECT` | `True` for exactly one path between entry and exit; `False` for a looped maze with multiple routes |
+| `SEED` | Optional. Any whole number always reproduces the exact same maze; leave it out for a fresh maze every run |
 
 A default `config.txt` matching this exact format is included at the repository root.
-`SEED` is not yet a config-file key — reproducibility is available through the
-`MazeGenerator(seed=...)` Python API, but not through the CLI's config file yet (see
-"What could be improved" below).
+
+## Output File Format
+
+```
+D539553955553D517913
+97C693C69553C53C56AA
+...one line of hex digits per maze row...
+
+0,0
+19,14
+EESENEEESENEEEEESEESSENEEENNESSSSWWWSWNWSSSENESSSWSESSESSENNNESSS
+```
+Each hex digit is one cell's walls, as a 4-bit number: bit 0 (North), bit 1 (East),
+bit 2 (South), bit 3 (West) — a set bit means that wall is closed. After a blank line:
+the entry coordinates, the exit coordinates, and the shortest path from entry to exit as
+a string of `N`/`E`/`S`/`W` letters.
 
 ## Chosen Maze Algorithm
 
@@ -84,10 +179,11 @@ area can ever exist (that would require a cycle, which a tree cannot contain), a
 reachable cell is guaranteed connected with no isolated cells.
 
 **Generation (non-perfect)**: starts from the same perfect maze, then opens the four
-corners and the center, randomly removes a percentage of the remaining interior walls
-(skipping any that would touch the "42" pattern or create a 2x2 open block), and finally
-removes real dead-ends. This produces a maze with loops and multiple valid routes
-between entry and exit, as the subject describes for `PERFECT=False`.
+corners and the center, randomly removes a percentage of the remaining interior walls,
+and finally reduces dead-ends — every single one of those wall removals is checked first
+(no touching the "42" pattern, no creating an illegal 2x2 open block) before being
+applied. This produces a maze with loops and multiple valid routes between entry and
+exit, as the subject describes for `PERFECT=False`.
 
 **Solving**: a flood fill (breadth-first search) from the entry to the exit. This finds
 the shortest path regardless of whether the maze is perfect or has loops, in time
@@ -97,7 +193,8 @@ proportional to the number of cells.
 
 The generation (and, since it's bundled in the same package, the graphical
 visualization) logic lives in a standalone module, installable via
-`mazegen-0.1.0-py3-none-any.whl` (built from `src/mazegen/`, see `make package` above).
+`mazegen-0.1.0-py3-none-any.whl` (built from `src/mazegen/`, see step 8 above, or
+`make package`).
 
 ```python
 from mazegen import MazeGenerator
@@ -115,14 +212,17 @@ rest of the module has no such dependency.
 
 ## Visual Representation
 
-- **ASCII** (`ascii_display`, always available, no extra setup): prints the maze using
-  `+`/`-`/`|` characters directly in the terminal.
-- **MLX** (bonus, `make visualize` or `generator.visualize()`): an interactive window
-  showing walls, a colored entry/exit, the "42" pattern, and (toggleable) the solution
-  path, with keyboard controls: `1` regenerate, `2` show/hide path, `3` rotate wall
-  colors, `4`/Esc quit. Uses the official `mlx` package provided with the subject
+- **ASCII** (always available, no extra setup): `make run` prints the maze directly in
+  the terminal, marking the entry (`S`), the exit (`X`), and, when toggled on, the
+  solution path (`.`), in a rotating choice of colors — with a menu to regenerate,
+  toggle the path, and change color, right there in the same command the subject
+  mandates (`python3 a_maze_ing.py config.txt`).
+- **MLX** (bonus, `make visualize` or `generator.visualize()`): the same controls in a
+  graphical window instead. Uses the official `mlx` package provided with the subject
   (`vendor/mlx-2.2.tgz`; `make install` or `sh vendor/install_mlx.sh` installs the
-  right prebuilt wheel for Ubuntu/Fedora — Linux only, no macOS build).
+  right prebuilt wheel for Ubuntu/Fedora). **Linux only** — there is no macOS build in
+  what was provided, so this specific feature can't be tested on a Mac; the terminal
+  version above already fully satisfies the requirement on its own, on any platform.
 
 ## Team & Project Management
 
@@ -131,37 +231,30 @@ rest of the module has no such dependency.
   recursive-backtracker generation algorithm, the "42" pattern, and the non-perfect
   (looped) generation mode.
 - **Karim Taher** — configuration parsing and validation, the `MazeGenerator` wrapper
-  class and packaging, CLI wiring, the flood-fill solver, and the MLX graphical
-  visualizer.
+  class and packaging, CLI wiring and interactivity, the flood-fill solver, and the MLX
+  graphical visualizer.
 
 **Planning & evolution**: work started with config parsing (nothing else needs the maze
 itself yet), then the core data model and generation algorithm, then the reusable
 `MazeGenerator` class and `.whl` packaging, then wiring it all into the CLI. The "42"
-pattern and a real solver came next, then the MLX visualizer, and finally the non-perfect
-generation mode.
+pattern and a real solver came next, then the MLX visualizer, then the non-perfect
+generation mode, and finally a full pass against the subject to close every remaining
+gap: the output file's footer, seed support in the config file, the terminal
+interactivity, and a real bug in the non-perfect mode that could produce an illegal
+open area.
 
 **What worked well**: splitting ownership by file (data model and algorithms vs.
 config/packaging/CLI/visualizer) let both halves be built and tested independently
-before being wired together, which is also what caught several real bugs early —
-a stale import depending on a file outside the installable package, a `src`/`mazegen`
-mypy naming clash, and a stale `.whl` that didn't match current source.
+before being wired together, which is also what caught several real bugs early — a
+stale import depending on a file outside the installable package, a `src`/`mazegen`
+mypy naming clash, and a stale `.whl` that didn't match current source. Re-checking the
+whole project against the subject text line by line, late, caught real remaining gaps
+(the missing output footer, an unsafe wall-removal path) that smaller, earlier checks
+had missed.
 
-**What could be improved** (known gaps, being tracked, not yet fixed):
-- The output file's mandatory trailing block (entry coordinates, exit coordinates,
-  solution path) isn't written yet — `put_hex_maze()` currently only writes the hex
-  grid.
-- `SEED` isn't exposed through `config.txt`/the CLI, only through the `MazeGenerator`
-  Python API — every CLI run currently generates a fresh, non-reproducible maze.
-- Nothing validates that `ENTRY`/`EXIT` don't land on a "42" pattern cell.
-- The non-perfect mode's corner- and center-opening steps don't apply the same 2x2-open
-  check the interior-wall-removal step uses, so a generated non-perfect maze can
-  currently contain an illegal fully-open 2x2 block near those specific cells.
-- The regenerate/show-path/change-color interactions currently only exist behind the
-  optional MLX path (`make visualize`); the mandated `python3 a_maze_ing.py config.txt`
-  command itself has no interactive loop.
-- `ascii_display()` shows walls only — no entry/exit/path markers in the always-available
-  fallback display.
-- No automated test suite exists yet (not graded per the subject, but recommended).
+**What could be improved**: no automated test suite exists yet (not graded per the
+subject, but recommended); the MLX bonus can only be tested on Linux, since the subject
+only provided prebuilt libraries for Ubuntu and Fedora.
 
 **Tools used**: Python 3.10+, `flake8`, `mypy`, `Makefile`, `git`, and the official `mlx`
 package (bonus, graphical visualization only).

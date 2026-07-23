@@ -173,6 +173,14 @@ def dict_validate(config_dict: dict[str, str]) -> dict[str, ConfigValue]:
 
 
 def load_config(config_file: str) -> dict[str, ConfigValue]:
+    """Read and validate a KEY=VALUE config file.
+
+    Args:
+        config_file: Path to the config file to read.
+
+    Returns:
+        The validated, typed config values (see dict_validate).
+    """
     config_dict: dict[str, str] = {}
     with open(config_file, "r") as f:
         lines = [

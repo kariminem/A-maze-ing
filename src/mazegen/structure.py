@@ -6,6 +6,8 @@ from enum import IntFlag
 # This is already the bit representation of the walls as we will need it
 # for the output.
 class Walls(IntFlag):
+    """One cell's walls as a 4-bit number: North, East, South, West."""
+
     NORTH = 1   # Bit 0
     EAST = 2    # Bit 1
     SOUTH = 4   # Bit 2
@@ -22,20 +24,23 @@ OPPOSITE = {
 
 
 class Cell:
+    """One square of the maze grid, at position (x, y)."""
+
     def __init__(self, x: int, y: int):
-        # cells have to have their coordinates to know where they are in the
-        # grid so its easier to work with cells instead of having to
-        # communicate coordinates
+        """Create a cell with all 4 walls closed."""
         self.x = x
         self.y = y
-        # setting all walls to closed using bit operations -> (1111)
         self.walls: Walls = Walls.NORTH | Walls.EAST | Walls.SOUTH | Walls.WEST
         self.visited = False
         self.blocked = False  # set True for the cells that make 42 pattern
 
 
 class Grid:
+    """The full maze: a 2D array of Cells, with the "42" pattern already
+    placed."""
+
     def __init__(self, width: int, height: int):
+        """Create a width x height grid of fully-walled cells."""
         self.width = width
         self.height = height
         self.cells: list[list[Cell]] = []  # create empty double array

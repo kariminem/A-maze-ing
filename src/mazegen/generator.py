@@ -12,6 +12,13 @@ class MazeGenerationError(Exception):
 
 
 class MazeGenerator:
+    """Builds, stores, and solves one maze.
+
+    Basic usage:
+        >>> generator = MazeGenerator(width=10, height=10, seed=42)
+        >>> grid = generator.generate()
+    """
+
     def __init__(
         self,
         width: int,
@@ -21,6 +28,22 @@ class MazeGenerator:
         seed: int | None = None,
         perfect: bool = True,
     ) -> None:
+        """Validate the maze parameters and store them for generate().
+
+        Args:
+            width: Maze width, in cells.
+            height: Maze height, in cells.
+            entry: Entry coordinates as (x, y). Defaults to (0, 0).
+            exit: Exit coordinates as (x, y). Defaults to the bottom-right
+                cell.
+            seed: Optional; the same seed always reproduces the same maze.
+            perfect: True for exactly one path between entry and exit,
+                False for a looped maze with multiple routes.
+
+        Raises:
+            MazeGenerationError: Width/height aren't positive, entry/exit
+                are out of bounds, or entry and exit are the same cell.
+        """
         if width <= 0 or height <= 0:
             raise MazeGenerationError("width and height must be positive")
 
@@ -42,6 +65,15 @@ class MazeGenerator:
         self._grid: Grid | None = None
 
     def generate(self) -> Grid:
+        """Generate a new maze and store it as this generator's structure.
+
+        Returns:
+            The generated Grid.
+
+        Raises:
+            MazeGenerationError: The entry or exit falls on a "42"
+                pattern cell.
+        """
         if self.seed is not None:
             pma.random_instance = random.Random(self.seed)
 
@@ -63,6 +95,11 @@ class MazeGenerator:
         return grid
 
     def get_structure(self) -> Grid:
+        """Return the generated Grid.
+
+        Raises:
+            MazeGenerationError: generate() hasn't been called yet.
+        """
         if self._grid is None:
             raise MazeGenerationError(
                 "call generate() before accessing the structure"
@@ -70,6 +107,7 @@ class MazeGenerator:
         return self._grid
 
     def get_solution(self) -> list[str]:
+        """Return the shortest path from entry to exit, as N/E/S/W steps."""
         grid = self.get_structure()
 
         try:

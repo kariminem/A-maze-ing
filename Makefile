@@ -2,9 +2,11 @@
 # might find lying around with these same names.
 .PHONY: install run debug clean lint lint-strict visualize package
 
-# Installs the tools needed to lint this project and build its .whl package.
+# Installs the tools needed to lint this project and build its .whl package,
+# plus the official mlx package (vendor/mlx-2.2.tgz) for MLX visualization.
 install:
 	python3 -m pip install flake8 mypy build
+	sh vendor/install_mlx.sh
 
 # Runs the actual program 'python3 a_maze_ing.py config.txt'
 run:
@@ -32,15 +34,10 @@ lint-strict:
 	mypy . --strict
 
 # Opens the interactive MLX graphical window instead of the ASCII
-# display. Needs libmlx built first (sh vendor/build_mlx.sh). On a
-# Mac this also needs XQuartz running, so this target starts it and
-# points DISPLAY at it; on Linux none of that is needed, the OS
-# already has its own display ready to go.
+# display. Needs the mlx package installed first (make install, or
+# sh vendor/install_mlx.sh directly) -- Linux only, no macOS build.
 visualize:
-	@case "$$(uname)" in \
-		Darwin) open -a XQuartz; DISPLAY=:0 python3 visualize_maze.py config.txt ;; \
-		*) python3 visualize_maze.py config.txt ;; \
-	esac
+	python3 visualize_maze.py config.txt
 
 # Rebuilds mazegen-0.1.0-py3-none-any.whl at the repository root from
 # the current source in src/mazegen/. Separate from `run` on purpose:

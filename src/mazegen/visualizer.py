@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 
-# Interactive MLX (minilibx-linux) window for a mazegen Grid.
+# Interactive MLX window for a mazegen Grid, using the official mlx package
+# (vendor/mlx-2.2.tgz -- install with vendor/install_mlx.sh).
+# Only wiring point elsewhere: MazeGenerator.visualize() in generator.py.
 
 from __future__ import annotations
 
-import ctypes
-import pathlib
 import random
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
+
+from mlx import Mlx
 
 from .generator import MazeGenerationError
 from .structure import Cell, Grid, Walls
@@ -44,86 +46,12 @@ WALL_COLOR_PALETTE: list[RGB] = [
     (0, 200, 255),
 ]
 
-CONTROLS_TEXT = b"1: regen   2: path   3: color   4/ESC: quit"
+CONTROLS_TEXT = "1: regen   2: path   3: color   4/ESC: quit"
 KEYCODE_ESCAPE = 0xFF1B
 KEYCODE_REGENERATE = ord("1")
 KEYCODE_TOGGLE_PATH = ord("2")
 KEYCODE_ROTATE_COLOR = ord("3")
 KEYCODE_QUIT = ord("4")
-
-
-def locate_compiled_mlx_library() -> pathlib.Path:
-    """Find the compiled minilibx shared library (see vendor/build_mlx.sh)."""
-    repository_root_folder = pathlib.Path(__file__).resolve().parents[2]
-
-    for compiled_file_name in ("libmlx.dylib", "libmlx.so"):
-        candidate_path = repository_root_folder / "build" / compiled_file_name
-        if candidate_path.exists():
-            return candidate_path
-
-    raise RuntimeError(
-        "Could not find build/libmlx.dylib or build/libmlx.so. Build "
-        "minilibx-linux first by running: sh vendor/build_mlx.sh"
-    )
-
-
-class MlxBridge:
-    """ctypes binding for the MiniLibX C functions this file calls."""
-
-    def __init__(self) -> None:
-        self.compiled_library = ctypes.CDLL(str(locate_compiled_mlx_library()))
-
-        self.compiled_library.mlx_init.restype = ctypes.c_void_p
-
-        self.compiled_library.mlx_new_window.restype = ctypes.c_void_p
-        self.compiled_library.mlx_new_window.argtypes = [
-            ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_char_p,
-        ]
-
-        self.compiled_library.mlx_new_image.restype = ctypes.c_void_p
-        self.compiled_library.mlx_new_image.argtypes = [
-            ctypes.c_void_p, ctypes.c_int, ctypes.c_int,
-        ]
-
-        self.compiled_library.mlx_get_data_addr.restype = ctypes.POINTER(
-            ctypes.c_char
-        )
-        self.compiled_library.mlx_get_data_addr.argtypes = [
-            ctypes.c_void_p,
-            ctypes.POINTER(ctypes.c_int),
-            ctypes.POINTER(ctypes.c_int),
-            ctypes.POINTER(ctypes.c_int),
-        ]
-
-        self.compiled_library.mlx_put_image_to_window.argtypes = [
-            ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p,
-            ctypes.c_int, ctypes.c_int,
-        ]
-
-        self.compiled_library.mlx_destroy_image.argtypes = [
-            ctypes.c_void_p, ctypes.c_void_p,
-        ]
-
-        self.compiled_library.mlx_string_put.argtypes = [
-            ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int, ctypes.c_int,
-            ctypes.c_int, ctypes.c_char_p,
-        ]
-
-        self.compiled_library.mlx_key_hook.argtypes = [
-            ctypes.c_void_p,
-            ctypes.CFUNCTYPE(ctypes.c_int, ctypes.c_int, ctypes.c_void_p),
-            ctypes.c_void_p,
-        ]
-
-        self.compiled_library.mlx_loop_end.argtypes = [ctypes.c_void_p]
-        self.compiled_library.mlx_loop.argtypes = [ctypes.c_void_p]
-
-
-KeyPressCallback = ctypes.CFUNCTYPE(
-    ctypes.c_int, ctypes.c_int, ctypes.c_void_p,
-)
-
-PixelMemoryArray = ctypes.Array[ctypes.c_uint8]
 
 
 class MlxVisualizer:
@@ -140,62 +68,44 @@ class MlxVisualizer:
         self.show_path = False
         self.wall_color_index = 0
         self.current_image_pointer: int | None = None
-        self.key_press_callback: Any = None
 
         self.window_width_in_pixels = self.grid.width * cell_size
         self.window_height_in_pixels = (
             self.grid.height * cell_size + CONTROL_BAR_HEIGHT
         )
 
-        self.mlx_bridge = MlxBridge()
-        self.current_mlx_pointer = self.mlx_bridge.compiled_library.mlx_init()
-        self.current_window_pointer = (
-            self.mlx_bridge.compiled_library.mlx_new_window(
-                self.current_mlx_pointer,
-                self.window_width_in_pixels,
-                self.window_height_in_pixels,
-                b"A-maze-ing",
-            )
+        self.mlx = Mlx()
+        self.mlx_pointer = self.mlx.mlx_init()
+        self.window_pointer = self.mlx.mlx_new_window(
+            self.mlx_pointer,
+            self.window_width_in_pixels,
+            self.window_height_in_pixels,
+            "A-maze-ing",
         )
 
     def run(self) -> None:
         """Draw the maze, turn on the keyboard controls, and wait for input."""
         self.draw()
-        self.setup_keyboard_controls()
-        print("MLX visualizer running:", CONTROLS_TEXT.decode())
-        self.mlx_bridge.compiled_library.mlx_loop(self.current_mlx_pointer)
+        self.mlx.mlx_key_hook(
+            self.window_pointer, self.on_key_press, None,
+        )
+        print("MLX visualizer running:", CONTROLS_TEXT)
+        self.mlx.mlx_loop(self.mlx_pointer)
 
     def draw(self) -> None:
         """Render the whole maze into a new image and show it."""
-        library = self.mlx_bridge.compiled_library
-
-        new_image_pointer = library.mlx_new_image(
-            self.current_mlx_pointer,
+        new_image_pointer = self.mlx.mlx_new_image(
+            self.mlx_pointer,
             self.window_width_in_pixels,
             self.window_height_in_pixels,
         )
-
-        bits_per_pixel_result = ctypes.c_int()
-        bytes_per_image_row = ctypes.c_int()
-        byte_order_flag = ctypes.c_int()
-        raw_pixel_data_pointer = library.mlx_get_data_addr(
-            new_image_pointer,
-            ctypes.byref(bits_per_pixel_result),
-            ctypes.byref(bytes_per_image_row),
-            ctypes.byref(byte_order_flag),
+        pixel_memory_array, bits_per_pixel, bytes_per_image_row, _fmt = (
+            self.mlx.mlx_get_data_addr(new_image_pointer)
         )
-
-        bytes_per_pixel = bits_per_pixel_result.value // 8
-        pixel_memory_array_size = (
-            bytes_per_image_row.value * self.window_height_in_pixels
-        )
-        pixel_memory_array = ctypes.cast(
-            raw_pixel_data_pointer,
-            ctypes.POINTER(ctypes.c_uint8 * pixel_memory_array_size),
-        ).contents
+        bytes_per_pixel = bits_per_pixel // 8
 
         self.paint_solid_rectangle(
-            pixel_memory_array, bytes_per_image_row.value, bytes_per_pixel,
+            pixel_memory_array, bytes_per_image_row, bytes_per_pixel,
             0, 0, self.window_width_in_pixels, self.window_height_in_pixels,
             BACKGROUND_COLOR,
         )
@@ -207,7 +117,7 @@ class MlxVisualizer:
         for row_of_cells in self.grid.cells:
             for cell in row_of_cells:
                 self.draw_individual_cell(
-                    pixel_memory_array, bytes_per_image_row.value,
+                    pixel_memory_array, bytes_per_image_row,
                     bytes_per_pixel, cell, current_wall_color,
                     solution_path_cells,
                 )
@@ -215,17 +125,16 @@ class MlxVisualizer:
         # drop the previous frame's image now that the new one is ready
         previous_image_pointer = self.current_image_pointer
         if previous_image_pointer is not None:
-            library.mlx_destroy_image(
-                self.current_mlx_pointer, previous_image_pointer,
+            self.mlx.mlx_destroy_image(
+                self.mlx_pointer, previous_image_pointer,
             )
         self.current_image_pointer = new_image_pointer
 
-        library.mlx_put_image_to_window(
-            self.current_mlx_pointer, self.current_window_pointer,
-            new_image_pointer, 0, 0,
+        self.mlx.mlx_put_image_to_window(
+            self.mlx_pointer, self.window_pointer, new_image_pointer, 0, 0,
         )
-        library.mlx_string_put(
-            self.current_mlx_pointer, self.current_window_pointer,
+        self.mlx.mlx_string_put(
+            self.mlx_pointer, self.window_pointer,
             5, self.window_height_in_pixels - 6,
             TEXT_COLOR, CONTROLS_TEXT,
         )
@@ -251,7 +160,7 @@ class MlxVisualizer:
 
     def draw_individual_cell(
         self,
-        pixel_memory_array: PixelMemoryArray,
+        pixel_memory_array: memoryview,
         bytes_per_image_row: int,
         bytes_per_pixel: int,
         cell: Cell,
@@ -322,7 +231,7 @@ class MlxVisualizer:
 
     @staticmethod
     def paint_solid_rectangle(
-        pixel_memory_array: PixelMemoryArray,
+        pixel_memory_array: memoryview,
         bytes_per_image_row: int,
         bytes_per_pixel: int,
         x: int,
@@ -341,27 +250,12 @@ class MlxVisualizer:
                 exact_byte_offset = (
                     row_start_offset + pixel_column * bytes_per_pixel
                 )
-                # MiniLibX pixel byte order is blue, green, red
+                # mlx pixel byte order is B8G8R8A8: blue, green, red
                 pixel_memory_array[exact_byte_offset] = blue
                 pixel_memory_array[exact_byte_offset + 1] = green
                 pixel_memory_array[exact_byte_offset + 2] = red
 
-    def setup_keyboard_controls(self) -> None:
-        """Register the MLX key callback that dispatches to our handler."""
-        @KeyPressCallback
-        def handle_key_press_event(
-            keycode: int, unused_extra_data: int,
-        ) -> int:
-            self.process_keyboard_input(keycode)
-            return 0
-
-        # kept as an attribute so ctypes doesn't garbage-collect it
-        self.key_press_callback = handle_key_press_event
-        self.mlx_bridge.compiled_library.mlx_key_hook(
-            self.current_window_pointer, handle_key_press_event, None,
-        )
-
-    def process_keyboard_input(self, keycode: int) -> None:
+    def on_key_press(self, keycode: int, _param: object) -> None:
         """Run the action bound to a keycode (regen/path/color/quit)."""
         print(f"[visualizer] key received: keycode={keycode}")
 
@@ -387,6 +281,4 @@ class MlxVisualizer:
             self.draw()
 
         elif keycode in (KEYCODE_QUIT, KEYCODE_ESCAPE):
-            self.mlx_bridge.compiled_library.mlx_loop_end(
-                self.current_mlx_pointer
-            )
+            self.mlx.mlx_loop_exit(self.mlx_pointer)

@@ -64,9 +64,7 @@ def would_create_2x2_spaces(
 
 
 def safely_open_wall(grid: Grid, cell: Cell, direction: Walls) -> bool:
-    """Remove a wall only if it is safe to do so: it must not touch a
-    "42" pattern cell, and it must not create an illegal 2x2 open area.
-    Returns True if the wall was actually removed."""
+    """Remove a wall only if it is safe to do so"""
     neighbor = get_neighbor(grid, cell, direction)
     if neighbor is None:
         return False

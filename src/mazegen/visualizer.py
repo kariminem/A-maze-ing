@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
 
-# Interactive MLX window for a mazegen Grid, using the official mlx package
-# (vendor/mlx-2.2.tgz -- install with vendor/install_mlx.sh).
-# Only wiring point elsewhere: MazeGenerator.visualize() in generator.py.
-
 from __future__ import annotations
 
 import random
@@ -30,8 +26,6 @@ BLOCKED_COLOR: RGB = (150, 150, 150)
 PATH_COLOR: RGB = (50, 120, 255)
 TEXT_COLOR = 0xFFFFFF
 
-# Step for each solve_floodfill.solve() direction letter, used to turn a
-# path of letters back into (x, y) cells.
 PATH_STEP_DELTAS: dict[str, tuple[int, int]] = {
     "N": (0, -1),
     "E": (1, 0),
@@ -52,6 +46,8 @@ KEYCODE_REGENERATE = ord("1")
 KEYCODE_TOGGLE_PATH = ord("2")
 KEYCODE_ROTATE_COLOR = ord("3")
 KEYCODE_QUIT = ord("4")
+
+XEVENT_CLIENT_MESSAGE = 33
 
 
 class MlxVisualizer:
@@ -90,6 +86,10 @@ class MlxVisualizer:
         self.mlx.mlx_key_hook(
             self.window_pointer, self.on_key_press, None,
         )
+        self.mlx.mlx_hook(
+            self.window_pointer, XEVENT_CLIENT_MESSAGE, 0,
+            self.on_close_button, None,
+        )
         print("MLX visualizer running:", CONTROLS_TEXT)
         self.mlx.mlx_loop(self.mlx_pointer)
 
@@ -123,7 +123,6 @@ class MlxVisualizer:
                     solution_path_cells,
                 )
 
-        # drop the previous frame's image now that the new one is ready
         previous_image_pointer = self.current_image_pointer
         if previous_image_pointer is not None:
             self.mlx.mlx_destroy_image(
@@ -175,7 +174,6 @@ class MlxVisualizer:
         entry_x, entry_y = self.generator.entry
         exit_x, exit_y = self.generator.exit
 
-        # priority: blocked > entry > exit > path
         if cell.blocked:
             fill_color: RGB | None = BLOCKED_COLOR
         elif (cell.x, cell.y) == (entry_x, entry_y):
@@ -251,17 +249,16 @@ class MlxVisualizer:
                 exact_byte_offset = (
                     row_start_offset + pixel_column * bytes_per_pixel
                 )
-                # mlx pixel byte order is B8G8R8A8: blue, green, red
                 pixel_memory_array[exact_byte_offset] = blue
                 pixel_memory_array[exact_byte_offset + 1] = green
                 pixel_memory_array[exact_byte_offset + 2] = red
+                pixel_memory_array[exact_byte_offset + 3] = 255
 
     def on_key_press(self, keycode: int, _param: object) -> None:
         """Run the action bound to a keycode (regen/path/color/quit)."""
         print(f"[visualizer] key received: keycode={keycode}")
 
         if keycode == KEYCODE_REGENERATE:
-            # force a fresh seed so a manual regenerate is visibly different
             new_random_seed = random.randrange(2**32)
             self.generator.seed = new_random_seed
             self.generator.generate()
@@ -283,3 +280,8 @@ class MlxVisualizer:
 
         elif keycode in (KEYCODE_QUIT, KEYCODE_ESCAPE):
             self.mlx.mlx_loop_exit(self.mlx_pointer)
+
+    def on_close_button(self, _param: object) -> None:
+        """Quit when the window's own close ([X]) button is clicked."""
+        print("[visualizer] close button clicked")
+        self.mlx.mlx_loop_exit(self.mlx_pointer)

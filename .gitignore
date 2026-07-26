@@ -7,5 +7,8 @@ build/
 venv/
 WALKTHROUGH.md
 progress.txt
+evaluation.txt
+python_toolbox.txt
 maze.txt
 output_maze.txt
+vendor/mlx-2.2/

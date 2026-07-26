@@ -11,6 +11,16 @@ class MazeGenerationError(Exception):
     """Raised when maze parameters are invalid or used out of order."""
 
 
+# How many fresh attempts a non-perfect maze gets to reach
+# TARGET_REAL_DEAD_ENDS before settling for whichever attempt had the
+# fewest. The subject (IV.4)
+# tolerates "a couple" real dead-ends and calls zero of them out as a bonus
+# (Chapter VIII), so we always aim for zero; every attempt draws from the
+# same seeded random stream, so the final pick stays reproducible per seed.
+MAX_IMPERFECT_ATTEMPTS = 30
+TARGET_REAL_DEAD_ENDS = 0
+
+
 class MazeGenerator:
     """Builds, stores, and solves one maze.
 
@@ -77,22 +87,55 @@ class MazeGenerator:
         if self.seed is not None:
             pma.random_instance = random.Random(self.seed)
 
-        grid = Grid(self.width, self.height)
         entry_x, entry_y = self.entry
         exit_x, exit_y = self.exit
 
+        if self.perfect:
+            grid = self._new_grid(entry_x, entry_y, exit_x, exit_y)
+            pma.perfect_algo(grid, grid.cells[entry_y][entry_x])
+        else:
+            grid = self._generate_non_perfect(entry_x, entry_y, exit_x, exit_y)
+
+        self._grid = grid
+        return grid
+
+    def _new_grid(
+        self, entry_x: int, entry_y: int, exit_x: int, exit_y: int
+    ) -> Grid:
+        """Build a fresh, fully-walled Grid and check entry/exit are usable.
+
+        Raises:
+            MazeGenerationError: The entry or exit falls on a "42"
+                pattern cell.
+        """
+        grid = Grid(self.width, self.height)
         if grid.cells[entry_y][entry_x].blocked:
             raise MazeGenerationError("entry falls on the '42' pattern")
         if grid.cells[exit_y][exit_x].blocked:
             raise MazeGenerationError("exit falls on the '42' pattern")
-
-        if self.perfect:
-            pma.perfect_algo(grid, grid.cells[entry_y][entry_x])
-        elif not self.perfect:
-            ipma.imperfect_algo(grid, grid.cells[entry_y][entry_x])
-
-        self._grid = grid
         return grid
+
+    def _generate_non_perfect(
+        self, entry_x: int, entry_y: int, exit_x: int, exit_y: int
+    ) -> Grid:
+        """Generate a non-perfect maze, retrying with fresh randomness
+        until real dead-ends reach TARGET_REAL_DEAD_ENDS, or otherwise
+        keeping whichever attempt had the fewest."""
+        best_grid: Grid | None = None
+        best_dead_ends: int | None = None
+
+        for _ in range(MAX_IMPERFECT_ATTEMPTS):
+            grid = self._new_grid(entry_x, entry_y, exit_x, exit_y)
+            ipma.imperfect_algo(grid, grid.cells[entry_y][entry_x])
+            dead_ends = ipma.count_real_dead_ends(grid)
+
+            if best_dead_ends is None or dead_ends < best_dead_ends:
+                best_grid, best_dead_ends = grid, dead_ends
+            if dead_ends <= TARGET_REAL_DEAD_ENDS:
+                break
+
+        assert best_grid is not None
+        return best_grid
 
     def get_structure(self) -> Grid:
         """Return the generated Grid.

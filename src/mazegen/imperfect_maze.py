@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
-import random
-
-from .perfect_maze_algo import perfect_algo, remove_wall_between
+from . import perfect_maze_algo as pma
 from .structure import Cell, Grid, Walls, get_middle_cell
 
 DIRECTIONS = [Walls.NORTH, Walls.EAST, Walls.SOUTH, Walls.WEST]
@@ -64,7 +62,9 @@ def would_create_2x2_spaces(
 
 
 def safely_open_wall(grid: Grid, cell: Cell, direction: Walls) -> bool:
-    """Remove a wall only if it is safe to do so"""
+    """Remove a wall only if it is safe to do so: it must not touch a
+    "42" pattern cell, and it must not create an illegal 2x2 open area.
+    Returns True if the wall was actually removed."""
     neighbor = get_neighbor(grid, cell, direction)
     if neighbor is None:
         return False
@@ -72,7 +72,7 @@ def safely_open_wall(grid: Grid, cell: Cell, direction: Walls) -> bool:
         return False
     if would_create_2x2_spaces(grid, cell, neighbor, direction):
         return False
-    remove_wall_between(cell, neighbor)
+    pma.remove_wall_between(cell, neighbor)
     return True
 
 
@@ -110,7 +110,7 @@ def remove_random_interior_walls(grid: Grid, percentage: int) -> None:
             if cell.y < grid.height - 1 and (cell.walls & Walls.SOUTH):
                 interior_walls.append((cell, Walls.SOUTH))
 
-    random.shuffle(interior_walls)
+    pma.random_instance.shuffle(interior_walls)
     walls_to_remove = len(interior_walls) * percentage // 100
 
     removed_so_far = 0
@@ -134,11 +134,31 @@ def remove_dead_ends(grid: Grid) -> None:
                 if cell.walls & direction
                 and get_neighbor(grid, cell, direction) is not None
             ]
-            random.shuffle(closed_directions)
+            pma.random_instance.shuffle(closed_directions)
 
             for direction in closed_directions:
                 if safely_open_wall(grid, cell, direction):
                     break
+
+
+def count_real_dead_ends(grid: Grid) -> int:
+    """Count dead-end cells (exactly 3 closed walls) that still have a
+    closed wall leading to a real, non-blocked neighbour. Matches the
+    "real" vs "42-enclosed" classification maze_analyzer.py itself uses to
+    grade the dead-end tolerance in the subject's IV.4 non-perfect mode."""
+    real_dead_ends = 0
+    for row in grid.cells:
+        for cell in row:
+            if int(cell.walls).bit_count() != 3:
+                continue
+            for direction in DIRECTIONS:
+                if not (cell.walls & direction):
+                    continue
+                neighbor = get_neighbor(grid, cell, direction)
+                if neighbor is not None and not neighbor.blocked:
+                    real_dead_ends += 1
+                    break
+    return real_dead_ends
 
 
 def imperfect_algo(grid: Grid, cell: Cell) -> None:
@@ -147,7 +167,7 @@ def imperfect_algo(grid: Grid, cell: Cell) -> None:
     create loops, and finally reduce dead ends. Every wall removal here
     goes through the same safety check, so the "42" pattern always stays
     closed and no 2x2 area ever opens up fully."""
-    perfect_algo(grid, cell)
+    pma.perfect_algo(grid, cell)
     open_the_four_corners(grid)
     open_the_center(grid)
     remove_random_interior_walls(grid, percentage=10)

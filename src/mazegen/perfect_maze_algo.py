@@ -15,7 +15,7 @@ class InvalidCoordinates(MazeAlgoError):
     pass
 
 
-myseed = random.randint(0, 10)
+myseed = random.randint(0, 1000)
 random_instance = random.Random(myseed)
 
 

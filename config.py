@@ -71,6 +71,11 @@ class ExceedingMazeLimit(AmazingExceptions):
     pass
 
 
+class MalformedConfigLine(AmazingExceptions):
+    """Exception raised for a config line that is not KEY=VALUE."""
+    pass
+
+
 class InvalidSeedInput(AmazingExceptions):
     """Exception raised for an invalid seed value in the config."""
     pass
@@ -188,6 +193,8 @@ def load_config(config_file: str) -> dict[str, ConfigValue]:
             if line.strip() != "" and line.strip()[0] != "#"
         ]
         for line in lines:
+            if "=" not in line:
+                raise MalformedConfigLine(f"Line is not KEY=VALUE: {line!r}")
             key, value = line.split("=", 1)
             config_dict[key.strip()] = value.strip()
     return dict_validate(config_dict)

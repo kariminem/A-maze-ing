@@ -5,10 +5,10 @@
 ## Description
 
 A-maze-ing is a Python maze generator and solver built for the 42 curriculum. Given a
-plain-text configuration file, it generates a maze — perfect (exactly one path between
-entry and exit) or non-perfect (looped, with multiple routes) — writes it to a file
-using a hexadecimal wall representation plus the entry, exit, and solution path, and
-displays it interactively, either as colored ASCII art in the terminal, or as a
+plain-text configuration file, it generates a maze, either perfect (exactly one path
+between entry and exit) or non-perfect (looped, with multiple routes), writes it to a
+file using a hexadecimal wall representation plus the entry, exit, and solution path,
+and displays it interactively, either as colored ASCII art in the terminal, or as a
 graphical MLX window. The maze always contains a visible "42" shape made of permanently
 closed cells, unless the maze is too small to fit it, in which case an error is printed
 and generation continues without it.
@@ -28,7 +28,7 @@ application on Linux.
 cd A-maze-ing
 ```
 
-**2. Check your Python version — must be 3.10 or later.**
+**2. Check your Python version (must be 3.10 or later).**
 ```bash
 python3 --version
 ```
@@ -48,21 +48,21 @@ extra step is only needed on an older local machine, not during actual evaluatio
 make install
 ```
 This creates a `venv/` folder (a self-contained space for installing tools, so they
-don't interfere with anything else already on your machine — the subject itself
+don't interfere with anything else already on your machine; the subject itself
 recommends this) and installs `flake8`/`mypy` (checks the code for mistakes), `build`
 (packages the project), and, on Linux only, the graphical `mlx` library (see "Visual
 Representation" below for why Mac is different) into it. This is also why plain
 `pip install ...` typically fails on a fresh Ubuntu/Debian machine (including WSL) with
-an "externally-managed-environment" error — modern Linux blocks installing Python
-packages system-wide by default; `make install` avoids that entirely by using its own
-`venv/` instead. You don't need to activate it yourself — every `make` command already
-knows to use it.
+an "externally-managed-environment" error: modern Linux blocks installing Python
+packages system-wide by default, so `make install` avoids that entirely by using its own
+`venv/` instead. You don't need to activate it yourself, since every `make` command
+already knows to use it.
 
 **4. Run the maze generator.**
 ```bash
 make run
 ```
-This is identical to running `python3 a_maze_ing.py config.txt` directly — `config.txt`,
+This is identical to running `python3 a_maze_ing.py config.txt` directly. `config.txt`,
 already included in this folder, is the settings file it reads. A maze appears in the
 terminal immediately, followed by a small numbered menu:
 ```
@@ -111,11 +111,11 @@ deactivate
 ```
 Walking through what just happened: `python3 -m venv /tmp/test_environment` creates a
 brand new, empty, throwaway Python setup, completely separate from this project folder
-(this mirrors exactly how an evaluator will test it — on a machine that has never seen
+(this mirrors exactly how an evaluator will test it, on a machine that has never seen
 this code before). `source .../activate` switches your terminal into using that empty
 setup. `python3 -m build` rebuilds the installable package from scratch, straight from
 the source code in `src/mazegen/`. `pip install dist/...whl` installs *only* that
-freshly built package into the empty setup — nothing else from this project folder is
+freshly built package into the empty setup, so nothing else from this project folder is
 available to it. The final line proves the package genuinely works completely on its
 own. `deactivate` switches your terminal back to normal.
 
@@ -124,7 +124,7 @@ own. `deactivate` switches your terminal back to normal.
 make visualize
 ```
 Opens an interactive window instead of the terminal display, with the same 4 controls.
-This only works on Linux (see "Visual Representation" below) — running it on macOS will
+This only works on Linux (see "Visual Representation" below). Running it on macOS will
 show a "No module named mlx" error, which is expected, not a bug.
 
 **10. Clean up afterward.**
@@ -172,14 +172,14 @@ D539553955553D517913
 EESENEEESENEEEEESEESSENEEENNESSSSWWWSWNWSSSENESSSWSESSESSENNNESSS
 ```
 Each hex digit is one cell's walls, as a 4-bit number: bit 0 (North), bit 1 (East),
-bit 2 (South), bit 3 (West) — a set bit means that wall is closed. After a blank line:
+bit 2 (South), bit 3 (West). A set bit means that wall is closed. After a blank line:
 the entry coordinates, the exit coordinates, and the shortest path from entry to exit as
 a string of `N`/`E`/`S`/`W` letters.
 
 ## Chosen Maze Algorithm
 
 **Generation (perfect)**: a randomized recursive backtracker (a seeded depth-first
-search). Chosen because it directly guarantees a *perfect* maze — a spanning tree — as a
+search). Chosen because it directly guarantees a *perfect* maze, a spanning tree, as a
 natural consequence of how it works (exactly one wall removed per newly visited cell),
 rather than needing extra logic bolted on afterward. That same spanning-tree property
 also automatically satisfies two other subject requirements for free: no fully open 2x2
@@ -188,7 +188,7 @@ reachable cell is guaranteed connected with no isolated cells.
 
 **Generation (non-perfect)**: starts from the same perfect maze, then opens the four
 corners and the center, randomly removes a percentage of the remaining interior walls,
-and finally reduces dead-ends — every single one of those wall removals is checked first
+and finally reduces dead-ends. Every single one of those wall removals is checked first
 (no touching the "42" pattern, no creating an illegal 2x2 open block) before being
 applied. This produces a maze with loops and multiple valid routes between entry and
 exit, as the subject describes for `PERFECT=False`.
@@ -222,23 +222,23 @@ rest of the module has no such dependency.
 
 - **ASCII** (always available, no extra setup): `make run` prints the maze directly in
   the terminal, marking the entry (`S`), the exit (`X`), and, when toggled on, the
-  solution path (`.`), in a rotating choice of colors — with a menu to regenerate,
+  solution path (`.`), in a rotating choice of colors, with a menu to regenerate,
   toggle the path, and change color, right there in the same command the subject
   mandates (`python3 a_maze_ing.py config.txt`).
 - **MLX** (bonus, `make visualize` or `generator.visualize()`): the same controls in a
   graphical window instead. Uses the official `mlx` package provided with the subject
   (`vendor/mlx-2.2.tgz`; `make install` or `sh vendor/install_mlx.sh` installs the
-  right prebuilt wheel for Ubuntu/Fedora). **Linux only** — there is no macOS build in
-  what was provided, so this specific feature can't be tested on a Mac; the terminal
+  right prebuilt wheel for Ubuntu/Fedora). **Linux only**, since there is no macOS build
+  in what was provided, so this specific feature can't be tested on a Mac. The terminal
   version above already fully satisfies the requirement on its own, on any platform.
 
 ## Team & Project Management
 
 **Roles**:
-- **Casie Lynn Garnatz** — the core maze data model (`Grid`/`Cell`/`Walls`), the
+- **Casie Lynn Garnatz**: the core maze data model (`Grid`/`Cell`/`Walls`), the
   recursive-backtracker generation algorithm, the "42" pattern, and the non-perfect
   (looped) generation mode.
-- **Karim Taher** — configuration parsing and validation, the `MazeGenerator` wrapper
+- **Karim Taher**: configuration parsing and validation, the `MazeGenerator` wrapper
   class and packaging, CLI wiring and interactivity, the flood-fill solver, and the MLX
   graphical visualizer.
 
@@ -253,7 +253,7 @@ open area.
 
 **What worked well**: splitting ownership by file (data model and algorithms vs.
 config/packaging/CLI/visualizer) let both halves be built and tested independently
-before being wired together, which is also what caught several real bugs early — a
+before being wired together, which is also what caught several real bugs early: a
 stale import depending on a file outside the installable package, a `src`/`mazegen`
 mypy naming clash, and a stale `.whl` that didn't match current source. Re-checking the
 whole project against the subject text line by line, late, caught real remaining gaps
@@ -274,7 +274,7 @@ package (bonus, graphical visualization only).
 - [Python 2D Arrays/Lists the Right Way — GeeksforGeeks](https://www.geeksforgeeks.org/python/python-using-2d-arrays-lists-the-right-way/)
 - [Python random module — W3Schools](https://www.w3schools.com/python/module_random.asp)
 
-**How AI was used**: AI assistance was used for two specific, scoped tasks — integrating
+**How AI was used**: AI assistance was used for two specific, scoped tasks: integrating
 the MLX graphical visualizer (wiring the provided `mlx` package into the project), and
 structuring/writing this README. The maze generation and solving algorithms,
 configuration parsing, and packaging were designed and written by the team directly.

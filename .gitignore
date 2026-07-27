@@ -8,6 +8,7 @@ venv/
 WALKTHROUGH.md
 progress.txt
 evaluation.txt
+evaluation_questions.md
 python_toolbox.txt
 maze.txt
 output_maze.txt

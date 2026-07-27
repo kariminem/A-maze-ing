@@ -16,9 +16,10 @@ and generation continues without it.
 The maze-generation logic is also packaged as a standalone, pip-installable module
 (`mazegen`) so it can be reused in other projects independently of this CLI.
 
-## How to Run and Test This, Step by Step
+## Instructions
 
-This section assumes no prior coding experience. Every command below is meant to be
+How to run and test this, step by step. This section assumes no prior coding
+experience. Every command below is meant to be
 typed exactly as written, into a program called "Terminal" (on macOS) or a terminal
 application on Linux.
 

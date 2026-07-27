@@ -40,8 +40,6 @@ create and activate a virtual environment with it before continuing:
 python3.11 -m venv venv
 source venv/bin/activate
 ```
-42 Berlin's own Linux machines already have Python 3.10+ as `python3` directly, so this
-extra step is only needed on an older local machine, not during actual evaluation.
 
 **3. Install the project's dependencies.**
 ```bash
@@ -97,9 +95,7 @@ make lint
 This should finish with no errors printed at all. If you see error messages, something
 in the code doesn't meet the project's requirements.
 
-**8. Test the reusable package, in total isolation**, exactly the way this project will
-actually be evaluated (per the subject: *"in a virtualenv or equivalent, install the
-needed tools and build your package again from your sources"*):
+**8. Test the reusable package, in total isolation**:
 ```bash
 python3 -m venv /tmp/test_environment
 source /tmp/test_environment/bin/activate
@@ -109,15 +105,6 @@ pip install dist/mazegen-0.1.0-py3-none-any.whl
 python3 -c "from mazegen import MazeGenerator; g = MazeGenerator(width=10, height=10, seed=1); g.generate(); print('It works:', g.get_solution())"
 deactivate
 ```
-Walking through what just happened: `python3 -m venv /tmp/test_environment` creates a
-brand new, empty, throwaway Python setup, completely separate from this project folder
-(this mirrors exactly how an evaluator will test it, on a machine that has never seen
-this code before). `source .../activate` switches your terminal into using that empty
-setup. `python3 -m build` rebuilds the installable package from scratch, straight from
-the source code in `src/mazegen/`. `pip install dist/...whl` installs *only* that
-freshly built package into the empty setup, so nothing else from this project folder is
-available to it. The final line proves the package genuinely works completely on its
-own. `deactivate` switches your terminal back to normal.
 
 **9. Optional: the graphical version (Linux only).**
 ```bash
@@ -255,14 +242,9 @@ open area.
 config/packaging/CLI/visualizer) let both halves be built and tested independently
 before being wired together, which is also what caught several real bugs early: a
 stale import depending on a file outside the installable package, a `src`/`mazegen`
-mypy naming clash, and a stale `.whl` that didn't match current source. Re-checking the
-whole project against the subject text line by line, late, caught real remaining gaps
-(the missing output footer, an unsafe wall-removal path) that smaller, earlier checks
-had missed.
+mypy naming clash, and a stale `.whl` that didn't match current source.
 
-**What could be improved**: no automated test suite exists yet (not graded per the
-subject, but recommended); the MLX bonus can only be tested on Linux, since the subject
-only provided prebuilt libraries for Ubuntu and Fedora.
+**What could be improved**: no automated test suite exists yet.
 
 **Tools used**: Python 3.10+, `flake8`, `mypy`, `Makefile`, `git`, and the official `mlx`
 package (bonus, graphical visualization only).

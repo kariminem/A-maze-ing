@@ -126,13 +126,13 @@ Safe to run any time; nothing important is deleted.
 One `KEY=VALUE` pair per line; lines starting with `#` are comments and are ignored.
 
 ```
-WIDTH=20
-HEIGHT=15
+WIDTH=15
+HEIGHT=19
 ENTRY=0,0
-EXIT=19,14
+EXIT=13,4
 OUTPUT_FILE=maze.txt
-PERFECT=True
-SEED=42
+PERFECT=False
+#SEED=42
 ```
 
 | Key | Description |
@@ -218,6 +218,15 @@ rest of the module has no such dependency.
   right prebuilt wheel for Ubuntu/Fedora). **Linux only**, since there is no macOS build
   in what was provided, so this specific feature can't be tested on a Mac. The terminal
   version above already fully satisfies the requirement on its own, on any platform.
+
+## Bonuses
+
+- **No dead-end at all in the default (`PERFECT=False`) mode**: the non-perfect
+  generator is tuned to leave zero real dead-ends (only the "42" pattern's two
+  enclosed cells remain, which are tolerated by design). Verify it with:
+  `python3 maze_analyzer.py maze.txt --max-dead-ends 0`.
+- **MLX graphical visualizer**: an interactive graphical window (see "Visual
+  Representation" above), on top of the always-available ASCII terminal display.
 
 ## Team & Project Management
 

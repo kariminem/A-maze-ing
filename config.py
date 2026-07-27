@@ -80,10 +80,11 @@ class InvalidSeedInput(AmazingExceptions):
     """Exception raised for an invalid seed value in the config."""
     pass
 
-    
-class Unknown_Input_Param(AmazingExceptions):
+
+class UnknownInputParam(AmazingExceptions):
     """Exception raised for an invalid input parameter in the config."""
     pass
+
 
 ConfigValue = int | str | list[int] | bool | None
 
@@ -171,8 +172,9 @@ def dict_validate(config_dict: dict[str, str]) -> dict[str, ConfigValue]:
                 final_dict[key] = int(value)
             except ValueError:
                 raise InvalidSeedInput("Invalid Seed Input")
-        elif key not in input_params and key != "SEED":
-            raise Unknown_Input_Param(f"Unknown input parameter given --> {key}")
+        elif key not in input_params:
+            if key != "SEED":
+                raise UnknownInputParam(f"Unknown input -> {key}")
 
     if "SEED" not in final_dict:
         final_dict["SEED"] = None

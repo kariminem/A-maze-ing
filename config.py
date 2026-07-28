@@ -71,8 +71,18 @@ class ExceedingMazeLimit(AmazingExceptions):
     pass
 
 
+class MalformedConfigLine(AmazingExceptions):
+    """Exception raised for a config line that is not KEY=VALUE."""
+    pass
+
+
 class InvalidSeedInput(AmazingExceptions):
     """Exception raised for an invalid seed value in the config."""
+    pass
+
+
+class UnknownInputParam(AmazingExceptions):
+    """Exception raised for an invalid input parameter in the config."""
     pass
 
 
@@ -162,6 +172,9 @@ def dict_validate(config_dict: dict[str, str]) -> dict[str, ConfigValue]:
                 final_dict[key] = int(value)
             except ValueError:
                 raise InvalidSeedInput("Invalid Seed Input")
+        elif key not in input_params:
+            if key != "SEED":
+                raise UnknownInputParam(f"Unknown input -> {key}")
 
     if "SEED" not in final_dict:
         final_dict["SEED"] = None
@@ -188,6 +201,8 @@ def load_config(config_file: str) -> dict[str, ConfigValue]:
             if line.strip() != "" and line.strip()[0] != "#"
         ]
         for line in lines:
+            if "=" not in line:
+                raise MalformedConfigLine(f"Line is not KEY=VALUE: {line!r}")
             key, value = line.split("=", 1)
             config_dict[key.strip()] = value.strip()
     return dict_validate(config_dict)
